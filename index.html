@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Headcount Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>GC Headcount Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Schibsted+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 // ── Password gate ──────────────────────────────────────────────
@@ -48,84 +48,89 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <style>
-#gate{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);z-index:9999;align-items:center;justify-content:center}
-.gate-box{background:#fff;border-radius:16px;padding:40px;width:360px;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.4)}
-.gate-logo{width:48px;height:48px;background:linear-gradient(135deg,#2563eb,#1e40af);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 20px}
-.gate-box h2{font-family:'Inter',sans-serif;font-size:18px;font-weight:700;color:#0f172a;margin-bottom:6px}
-.gate-box p{font-family:'Inter',sans-serif;font-size:13px;color:#64748b;margin-bottom:24px}
-.gate-input{width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;text-align:center;letter-spacing:4px;outline:none;transition:border-color 0.15s}
-.gate-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
-.gate-btn{width:100%;margin-top:12px;padding:12px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:background 0.15s}
-.gate-btn:hover{background:#1d4ed8}
-.gate-error{display:none;margin-top:10px;color:#dc2626;font-size:13px;font-family:'Inter',sans-serif}
+#gate{display:none;position:fixed;inset:0;background:#2a0039;z-index:9999;align-items:center;justify-content:center}
+.gate-box{background:#f9f2e9;border-radius:4px;padding:48px 40px;width:380px;text-align:center;box-shadow:0 32px 64px rgba(0,0,0,0.5)}
+.gate-logo{margin:0 auto 28px;display:flex;justify-content:center}
+.gate-box h2{font-family:'Newsreader',serif;font-size:22px;font-weight:400;color:#2a0039;margin-bottom:6px}
+.gate-box p{font-family:'Schibsted Grotesk',sans-serif;font-size:13px;color:#86738c;margin-bottom:28px}
+.gate-input{width:100%;padding:12px 16px;border:1px solid #86738c;border-radius:2px;font-size:15px;font-family:'Schibsted Grotesk',sans-serif;text-align:center;letter-spacing:4px;outline:none;transition:border-color 0.15s;background:#fff;color:#2a0039}
+.gate-input:focus{border-color:#2a0039;box-shadow:0 0 0 3px rgba(42,0,57,0.12)}
+.gate-btn{width:100%;margin-top:12px;padding:13px;background:#2a0039;color:#f9f2e9;border:none;border-radius:2px;font-size:13px;font-weight:600;font-family:'Schibsted Grotesk',sans-serif;cursor:pointer;transition:opacity 0.15s;letter-spacing:0.5px}
+.gate-btn:hover{opacity:0.85}
+.gate-error{display:none;margin-top:10px;color:#b91c1c;font-size:13px;font-family:'Schibsted Grotesk',sans-serif}
 </style>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
-.header{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
-.header-left h1{color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px}
-.header-left p{color:#94a3b8;font-size:13px;margin-top:2px}
-.header-badge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500}
-.controls{background:#fff;border-bottom:1px solid #e2e8f0;padding:16px 32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-.controls label{font-size:13px;font-weight:600;color:#64748b;white-space:nowrap}
-.filter-select{border:1px solid #e2e8f0;border-radius:8px;padding:7px 12px;font-size:13px;font-family:'Inter',sans-serif;color:#1e293b;background:#fff;cursor:pointer;min-width:200px}
-.filter-select:focus{outline:none;border-color:#2563eb}
+body{font-family:'Schibsted Grotesk',sans-serif;background:#f9f2e9;color:#2a0039;min-height:100vh}
+.header{background:#2a0039;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.header-left{display:flex;align-items:center;gap:20px}
+.header-left .header-wordmark{height:28px;width:auto}
+.header-divider{width:1px;height:28px;background:rgba(249,242,233,0.25)}
+.header-title h1{font-family:'Newsreader',serif;color:#f9f2e9;font-size:20px;font-weight:400;letter-spacing:0;line-height:1.2}
+.header-title p{color:rgba(249,242,233,0.55);font-size:11px;margin-top:2px;font-family:'Schibsted Grotesk',sans-serif;letter-spacing:0.5px;text-transform:uppercase}
+.header-badge{background:rgba(249,242,233,0.1);border:1px solid rgba(249,242,233,0.2);color:rgba(249,242,233,0.75);padding:6px 14px;border-radius:2px;font-size:11px;font-weight:500;letter-spacing:0.5px;font-family:'Schibsted Grotesk',sans-serif}
+.controls{background:#fff;border-bottom:1px solid #e8dfd0;padding:14px 32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(42,0,57,0.06)}
+.controls label{font-size:12px;font-weight:600;color:#86738c;white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px}
+.filter-select{border:1px solid #e8dfd0;border-radius:2px;padding:7px 12px;font-size:13px;font-family:'Schibsted Grotesk',sans-serif;color:#2a0039;background:#fff;cursor:pointer;min-width:200px}
+.filter-select:focus{outline:none;border-color:#2a0039}
 .filter-pills{display:flex;gap:6px;flex-wrap:wrap}
-.pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all 0.15s}
-.pill:hover{border-color:#2563eb;color:#2563eb}
-.pill.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.pill{padding:5px 12px;border-radius:2px;font-size:12px;font-weight:500;border:1px solid #e8dfd0;background:#fff;color:#86738c;cursor:pointer;transition:all 0.15s}
+.pill:hover{border-color:#2a0039;color:#2a0039}
+.pill.active{background:#2a0039;color:#f9f2e9;border-color:#2a0039}
 .main{padding:24px 32px;max-width:1600px;margin:0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px}
-.kpi-card{background:#fff;border-radius:12px;padding:20px;border-left:4px solid;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s}
-.kpi-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-.kpi-card.in-seat{border-color:#2563eb}
-.kpi-card.ans{border-color:#f59e0b}
-.kpi-card.in-market{border-color:#10b981}
-.kpi-card.tbh{border-color:#8b5cf6}
-.kpi-card.total{border-color:#1e293b}
+.kpi-card{background:#fff;border-radius:2px;padding:20px;border-left:4px solid;box-shadow:0 1px 3px rgba(42,0,57,0.07);transition:transform 0.15s}
+.kpi-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(42,0,57,0.12)}
+.kpi-card.in-seat{border-color:#2a0039}
+.kpi-card.ans{border-color:#d97706}
+.kpi-card.in-market{border-color:#059669}
+.kpi-card.tbh{border-color:#86738c}
+.kpi-card.total{border-color:#2a0039;background:#2a0039}
 .kpi-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
-.kpi-card.in-seat .kpi-icon{background:#dbeafe}
+.kpi-card.in-seat .kpi-icon{background:#f0eaf5}
 .kpi-card.ans .kpi-icon{background:#fef3c7}
 .kpi-card.in-market .kpi-icon{background:#d1fae5}
-.kpi-card.tbh .kpi-icon{background:#ede9fe}
-.kpi-card.total .kpi-icon{background:#f1f5f9}
-.kpi-number{font-size:32px;font-weight:700;line-height:1;margin-bottom:4px}
-.kpi-card.in-seat .kpi-number{color:#2563eb}
+.kpi-card.tbh .kpi-icon{background:#f0eaf5}
+.kpi-card.total .kpi-icon{background:rgba(249,242,233,0.15)}
+.kpi-number{font-size:32px;font-weight:700;line-height:1;margin-bottom:4px;font-family:'Newsreader',serif}
+.kpi-card.in-seat .kpi-number{color:#2a0039}
 .kpi-card.ans .kpi-number{color:#d97706}
 .kpi-card.in-market .kpi-number{color:#059669}
-.kpi-card.tbh .kpi-number{color:#7c3aed}
-.kpi-card.total .kpi-number{color:#1e293b}
-.kpi-label{font-size:13px;font-weight:600;color:#374151;margin-bottom:2px}
-.kpi-sub{font-size:11px;color:#94a3b8}
+.kpi-card.tbh .kpi-number{color:#86738c}
+.kpi-card.total .kpi-number{color:#f9f2e9}
+.kpi-label{font-size:12px;font-weight:600;color:#2a0039;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.4px}
+.kpi-card.total .kpi-label{color:rgba(249,242,233,0.8)}
+.kpi-sub{font-size:11px;color:#86738c}
+.kpi-card.total .kpi-sub{color:rgba(249,242,233,0.5)}
 .charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
-.chart-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
-.chart-card h3{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:4px}
-.chart-card p{font-size:12px;color:#94a3b8;margin-bottom:16px}
+.chart-card{background:#fff;border-radius:2px;padding:20px;box-shadow:0 1px 3px rgba(42,0,57,0.07)}
+.chart-card h3{font-size:14px;font-weight:600;color:#2a0039;margin-bottom:4px;font-family:'Newsreader',serif}
+.chart-card p{font-size:12px;color:#86738c;margin-bottom:16px}
 .chart-wrap{position:relative}
-.tabs{display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px}
-.tab{padding:10px 20px;font-size:13px;font-weight:500;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap}
-.tab:hover{color:#2563eb}
-.tab.active{color:#2563eb;border-bottom-color:#2563eb;font-weight:600}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e8dfd0;margin-bottom:20px}
+.tab{padding:10px 20px;font-size:12px;font-weight:500;color:#86738c;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;text-transform:uppercase;letter-spacing:0.4px}
+.tab:hover{color:#2a0039}
+.tab.active{color:#2a0039;border-bottom-color:#2a0039;font-weight:700}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
-.table-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden}
-.table-header{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
-.table-header h3{font-size:14px;font-weight:600;color:#1e293b}
-.table-count{background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+.table-card{background:#fff;border-radius:2px;box-shadow:0 1px 3px rgba(42,0,57,0.07);overflow:hidden}
+.table-header{padding:16px 20px;border-bottom:1px solid #f0eaf5;display:flex;align-items:center;justify-content:space-between}
+.table-header h3{font-size:14px;font-weight:600;color:#2a0039;font-family:'Newsreader',serif}
+.table-count{background:#f0eaf5;color:#2a0039;padding:3px 10px;border-radius:2px;font-size:12px;font-weight:600}
 table{width:100%;border-collapse:collapse}
-thead th{background:#f8fafc;padding:10px 16px;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:1px solid #e2e8f0;white-space:nowrap}
-tbody tr{border-bottom:1px solid #f1f5f9;transition:background 0.1s}
-tbody tr:hover{background:#f8fafc}
-tbody td{padding:10px 16px;font-size:13px;color:#374151}
-tbody td:first-child{font-weight:500;color:#1e293b}
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
-.badge-blue{background:#dbeafe;color:#1d4ed8}
+thead th{background:#fdf8f4;padding:10px 16px;font-size:10px;font-weight:600;color:#86738c;text-transform:uppercase;letter-spacing:0.7px;text-align:left;border-bottom:1px solid #e8dfd0;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f9f2e9;transition:background 0.1s}
+tbody tr:hover{background:#fdf8f4}
+tbody td{padding:10px 16px;font-size:13px;color:#2a0039}
+tbody td:first-child{font-weight:500;color:#2a0039}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:2px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-blue{background:#f0eaf5;color:#2a0039}
 .badge-green{background:#d1fae5;color:#047857}
 .badge-amber{background:#fef3c7;color:#b45309}
-.badge-purple{background:#ede9fe;color:#6d28d9}
+.badge-purple{background:#f0eaf5;color:#86738c}
 .badge-red{background:#fee2e2;color:#b91c1c}
-.badge-slate{background:#f1f5f9;color:#475569}
-.empty-state{padding:48px;text-align:center;color:#94a3b8;font-size:14px}
+.badge-slate{background:#f0eaf5;color:#86738c}
+.empty-state{padding:48px;text-align:center;color:#86738c;font-size:14px}
 .section-title{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:16px}
 .progress-bar{height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden}
 .progress-fill{height:100%;border-radius:3px;transition:width 0.5s}
@@ -142,9 +147,14 @@ tbody td:first-child{font-weight:500;color:#1e293b}
 <!-- Password Gate -->
 <div id="gate">
   <div class="gate-box">
-    <div class="gate-logo">📊</div>
-    <h2>Headcount Dashboard</h2>
-    <p>This dashboard is restricted to authorized team members.</p>
+    <div class="gate-logo">
+      <svg width="54" height="56" viewBox="0 0 54 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M48.0004 26.0785V26.0677H26.5372V33.5622H43.6752C44.3869 33.5622 44.9004 34.2334 44.7063 34.9087C42.4102 42.8938 34.857 48.6954 25.9728 48.44C15.862 48.1492 7.72522 39.9277 7.65364 29.9427C7.57931 19.5867 16.063 11.1682 26.5372 11.1682V3.61523C11.8714 3.61523 -0.0165014 15.3584 1.7194e-05 29.8394C0.0165358 44.3435 11.8439 56.0011 26.5372 56.0011C40.6936 56.0011 52.2567 45.0595 53.0289 31.2783C53.0289 28.4495 50.6241 26.084 48.0004 26.0772V26.0785Z" fill="#2A0039"/>
+        <path d="M41.9008 22.5897C46.0098 22.5897 49.6109 20.4511 51.6289 17.2405L46.7036 14.2269C45.7083 15.8125 43.9298 16.8696 41.9008 16.8696C38.7815 16.8696 36.2528 14.3736 36.2528 11.2948C36.2528 8.21603 38.7815 5.72011 41.9008 5.72011C43.9271 5.72011 45.7042 6.77446 46.7008 8.35734L51.6261 5.34375C49.6081 2.13723 46.0084 0 41.9008 0C35.581 0 30.4575 5.05707 30.4575 11.2948C30.4575 17.5326 35.581 22.5897 41.9008 22.5897Z" fill="#2A0039"/>
+      </svg>
+    </div>
+    <h2>Headcount Planning</h2>
+    <p>This dashboard is restricted to authorized General Catalyst team members.</p>
     <input id="gate-input" class="gate-input" type="password" placeholder="Enter access code" autocomplete="off">
     <button class="gate-btn" onclick="submitPass()">Access Dashboard</button>
     <div id="gate-error" class="gate-error">Incorrect password. Please try again.</div>
@@ -156,8 +166,28 @@ tbody td:first-child{font-weight:500;color:#1e293b}
 
 <div class="header">
   <div class="header-left">
-    <h1>Headcount Planning Dashboard</h1>
-    <p>Current Forecast · FY2026</p>
+    <svg class="header-wordmark" viewBox="0 0 102 54" fill="none" xmlns="http://www.w3.org/2000/svg" height="26">
+      <path d="M13.0978 25.4209C6.17925 25.4209 0.547774 19.8625 0.582188 13.0337C0.582188 6.20491 6.24807 0.646482 13.1666 0.681808C16.608 0.681808 19.7025 2.08806 21.9614 4.31904L19.9448 6.30953C18.1029 4.49023 15.6692 3.49567 13.0964 3.49567C7.88204 3.49567 3.39723 7.71578 3.46744 13.137C3.53764 18.353 7.70859 22.5391 13.062 22.6071C17.3376 22.6071 21.3709 19.7593 22.4831 15.3326C22.6221 14.6805 22.3441 14.4753 21.8926 14.4753H13.0978V11.6275H23.4233C24.709 11.6275 25.5088 12.5201 25.5088 13.8231C25.5088 19.7593 20.121 25.4209 13.0978 25.4209Z" fill="#f9f2e9"/>
+      <path d="M35.0676 3.8373H30.061V11.6267H34.9285V14.4406H30.061V22.23H35.0676V25.0438H27.1758V1.02344H35.0676V3.8373Z" fill="#f9f2e9"/>
+      <path d="M37.5356 1.02344H40.3521L44.523 14.4392C44.5932 14.6457 44.6965 14.7137 44.8355 14.6797C44.9745 14.6457 44.9745 14.4392 44.9745 14.302L44.8699 1.02344H47.6161V25.0425H44.7653L40.6288 11.5914C40.5943 11.4202 40.5241 11.2476 40.3507 11.2829C40.1415 11.3169 40.1772 11.5914 40.1772 11.7639L40.2819 25.0425H37.5356V1.02344Z" fill="#f9f2e9"/>
+      <path d="M58.2902 3.8373H53.2837V11.6267H58.1512V14.4406H53.2837V22.23H58.2902V25.0438H50.3984V1.02344H58.2902V3.8373Z" fill="#f9f2e9"/>
+      <path d="M67.2225 14.4406H63.6421V25.0438H60.7568V1.02344H66.4929C69.2047 1.02344 70.8043 2.70414 70.8043 5.24355V10.4242C70.8043 11.8305 70.317 12.4827 69.3796 13.0316C70.3872 13.5805 70.8043 14.3359 70.8043 15.605V25.0411H67.919V15.1593C67.919 14.7476 67.6066 14.4392 67.2239 14.4392L67.2225 14.4406ZM67.919 10.9052V4.5574C67.919 4.14572 67.6066 3.8373 67.2239 3.8373H63.6435V11.6267H67.2239C67.6066 11.6267 67.919 11.2829 67.919 10.9066V10.9052Z" fill="#f9f2e9"/>
+      <path d="M78.4854 0.646484C81.5798 0.646484 83.4919 2.9454 83.4919 5.62203V25.0432H80.6066V14.44H76.3311V25.0432H73.4458V5.62203C73.4458 2.7742 75.5313 0.646484 78.4867 0.646484H78.4854ZM79.1805 3.49431H77.7558C76.956 3.49431 76.3311 4.11252 76.3311 4.90056V11.6261H80.6066V4.90056C80.6066 4.11116 79.9803 3.49431 79.1819 3.49431H79.1805Z" fill="#f9f2e9"/>
+      <path d="M94.06 25.0425H91.0701C87.8022 25.0425 86.1338 23.0859 86.1338 20.2041V1.02344H89.0191V21.5085C89.0191 21.8862 89.3673 22.2286 89.7486 22.2286H94.06V25.0425Z" fill="#f9f2e9"/>
+      <path d="M13.1321 53.245C6.2135 53.245 0.582031 47.7205 0.582031 40.8578C0.582031 33.995 6.2135 28.5059 13.1321 28.5059C17.5467 28.5059 21.4065 30.7708 23.6654 34.1675L21.2661 35.711C19.9804 33.6866 17.3374 31.3184 13.1321 31.3184C7.81306 31.3184 3.46728 35.6078 3.46728 40.8578C3.46728 46.1078 7.77864 50.4311 13.1321 50.4311C17.1296 50.4311 19.8414 48.0982 21.2317 46.0738L23.631 47.6173C21.4065 51.014 17.5122 53.245 13.1321 53.245Z" fill="#f9f2e9"/>
+      <path d="M30.4092 28.4707C33.5037 28.4707 35.4157 30.7696 35.4157 33.4462V52.8674H32.5305V42.2642H28.2549V52.8674H25.3696V33.4462C25.3696 30.5984 27.4551 28.4707 30.4106 28.4707H30.4092ZM31.1043 31.3199H29.6796C28.8798 31.3199 28.2549 31.9381 28.2549 32.7261V39.4517H32.5305V32.7261C32.5305 31.9367 31.9041 31.3199 31.1057 31.3199H31.1043Z" fill="#f9f2e9"/>
+      <path d="M46.8517 31.6615H43.2713V52.8667H40.3861V31.6615H36.8057V28.8477H46.8517V31.6615Z" fill="#f9f2e9"/>
+      <path d="M53.2832 28.4707C56.3777 28.4707 58.2897 30.7696 58.2897 33.4462V52.8674H55.4045V42.2642H51.1289V52.8674H48.2437V33.4462C48.2437 30.5984 50.3291 28.4707 53.2846 28.4707H53.2832ZM53.9784 31.3199H52.5536C51.7539 31.3199 51.1289 31.9381 51.1289 32.7261V39.4517H55.4045V32.7261C55.4045 31.9367 54.7781 31.3199 53.9797 31.3199H53.9784Z" fill="#f9f2e9"/>
+      <path d="M68.8578 52.8667H65.868C62.6 52.8667 60.9316 50.9102 60.9316 48.0284V28.8477H63.8169V49.3327C63.8169 49.7104 64.1652 50.0528 64.5465 50.0528H68.8578V52.8667Z" fill="#f9f2e9"/>
+      <path d="M74.6966 42.2673V52.8353H71.8114V42.2673C69.5511 42.2673 68.231 40.6885 68.231 38.7334V28.8516H71.1162V38.7334C71.1162 39.1111 71.4287 39.4535 71.8114 39.4535H74.6966C75.0793 39.4535 75.3918 39.1097 75.3918 38.7334V28.8516H78.277V38.7334C78.277 40.6546 77.0257 42.2673 74.6966 42.2673Z" fill="#f9f2e9"/>
+      <path d="M90.4452 44.2533V48.4055C90.4452 51.2193 88.4643 53.2438 85.5777 53.2438H85.2996C82.4144 53.2438 80.4321 51.2193 80.4321 48.4055V45.4544H83.283V49.7098C83.283 50.0875 83.5955 50.4299 84.0125 50.4299H86.8634C87.2805 50.4299 87.5929 50.0862 87.5929 49.7098V42.9503C87.5929 42.5726 87.2805 42.2642 86.8634 42.2642H85.2996C82.4488 42.2642 80.4321 40.2058 80.4321 37.4259V33.309C80.4321 30.5291 82.4488 28.4707 85.2996 28.4707H85.5777C88.4285 28.4707 90.4452 30.5631 90.4452 33.309V36.2941H87.5943V32.0047C87.5943 31.627 87.2819 31.3185 86.8648 31.3185H84.0139C83.5968 31.3185 83.2843 31.627 83.2843 32.0047V38.7302C83.2843 39.1079 83.5968 39.4164 84.0139 39.4164H85.5433C88.4987 39.4164 90.4452 41.4068 90.4452 44.2547V44.2533Z" fill="#f9f2e9"/>
+      <path d="M101.778 31.6615H98.1976V52.8667H95.3123V31.6615H91.7319V28.8477H101.778V31.6615Z" fill="#f9f2e9"/>
+    </svg>
+    <div class="header-divider"></div>
+    <div class="header-title">
+      <h1>Headcount Planning</h1>
+      <p>Current Forecast · FY2026</p>
+    </div>
   </div>
   <div class="header-badge">As of March 31, 2026</div>
 </div>
@@ -251,9 +281,9 @@ tbody td:first-child{font-weight:500;color:#1e293b}
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('ans')">Accepted — Not Started <span id="tab-ans-count" style="margin-left:6px;background:#fef3c7;color:#b45309;padding:1px 7px;border-radius:10px;font-size:11px">23</span></div>
-    <div class="tab" onclick="switchTab('inmarket')">Roles In Market <span id="tab-inmarket-count" style="margin-left:6px;background:#d1fae5;color:#047857;padding:1px 7px;border-radius:10px;font-size:11px">46</span></div>
-    <div class="tab" onclick="switchTab('tbh')">Planned — Not In Market <span id="tab-tbh-count" style="margin-left:6px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-size:11px">44</span></div>
+    <div class="tab active" onclick="switchTab('ans')">Accepted — Not Started <span id="tab-ans-count" style="margin-left:6px;background:#fef3c7;color:#b45309;padding:1px 7px;border-radius:2px;font-size:11px">23</span></div>
+    <div class="tab" onclick="switchTab('inmarket')">Roles In Market <span id="tab-inmarket-count" style="margin-left:6px;background:#d1fae5;color:#047857;padding:1px 7px;border-radius:2px;font-size:11px">46</span></div>
+    <div class="tab" onclick="switchTab('tbh')">Planned — Not In Market <span id="tab-tbh-count" style="margin-left:6px;background:#f0eaf5;color:#86738c;padding:1px 7px;border-radius:2px;font-size:11px">44</span></div>
     <div class="tab" onclick="switchTab('overview')">Team Overview</div>
   </div>
 
@@ -694,9 +724,9 @@ function renderOverviewTable() {
       <td>
         <div style="display:flex;align-items:center;gap:8px">
           <div class="progress-bar" style="width:80px">
-            <div class="progress-fill" style="width:${fillRate}%;background:${fillRate>=80?'#10b981':fillRate>=60?'#f59e0b':'#ef4444'}"></div>
+            <div class="progress-fill" style="width:${fillRate}%;background:${fillRate>=80?'#2a0039':fillRate>=60?'#d97706':'#ef4444'}"></div>
           </div>
-          <span style="font-size:12px;color:#64748b">${fillRate}%</span>
+          <span style="font-size:12px;color:#86738c">${fillRate}%</span>
         </div>
       </td>
     </tr>`;
@@ -717,10 +747,10 @@ function initCharts() {
     data: {
       labels: teamStats.map(t => t.team),
       datasets: [
-        { label: 'In Seat',    data: teamStats.map(t=>t.inSeat),   backgroundColor: '#2563eb', borderRadius: 3 },
-        { label: 'Accepted NS',data: teamStats.map(t=>t.ans),      backgroundColor: '#f59e0b', borderRadius: 3 },
-        { label: 'In Market',  data: teamStats.map(t=>t.inMarket), backgroundColor: '#10b981', borderRadius: 3 },
-        { label: 'Planned TBH',data: teamStats.map(t=>t.tbh),      backgroundColor: '#8b5cf6', borderRadius: 3 },
+        { label: 'In Seat',    data: teamStats.map(t=>t.inSeat),   backgroundColor: '#2a0039', borderRadius: 2 },
+        { label: 'Accepted NS',data: teamStats.map(t=>t.ans),      backgroundColor: '#d97706', borderRadius: 2 },
+        { label: 'In Market',  data: teamStats.map(t=>t.inMarket), backgroundColor: '#059669', borderRadius: 2 },
+        { label: 'Planned TBH',data: teamStats.map(t=>t.tbh),      backgroundColor: '#86738c', borderRadius: 2 },
       ]
     },
     options: {
@@ -740,7 +770,7 @@ function initCharts() {
     type: 'doughnut',
     data: {
       labels: ['In Seat','Accepted NS','In Market','Planned TBH'],
-      datasets: [{ data: [k.inSeat, k.ans, k.inMarket, k.tbh], backgroundColor:['#2563eb','#f59e0b','#10b981','#8b5cf6'], borderWidth:0, hoverOffset:4 }]
+      datasets: [{ data: [k.inSeat, k.ans, k.inMarket, k.tbh], backgroundColor:['#2a0039','#d97706','#059669','#86738c'], borderWidth:0, hoverOffset:4 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '70%',
@@ -753,18 +783,18 @@ function initCharts() {
 
 function renderDonutLegend(k) {
   const items = [
-    { label:'In Seat', val:k.inSeat, color:'#2563eb' },
-    { label:'Accepted NS', val:k.ans, color:'#f59e0b' },
-    { label:'In Market', val:k.inMarket, color:'#10b981' },
-    { label:'Planned TBH', val:k.tbh, color:'#8b5cf6' },
+    { label:'In Seat', val:k.inSeat, color:'#2a0039' },
+    { label:'Accepted NS', val:k.ans, color:'#d97706' },
+    { label:'In Market', val:k.inMarket, color:'#059669' },
+    { label:'Planned TBH', val:k.tbh, color:'#86738c' },
   ];
   document.getElementById('donut-legend').innerHTML = items.map(i =>
-    `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div style="display:flex;align-items:center;gap:8px">
-        <div style="width:10px;height:10px;border-radius:2px;background:${i.color};flex-shrink:0"></div>
-        <span style="font-size:12px;color:#374151">${i.label}</span>
+        <div style="width:10px;height:10px;border-radius:1px;background:${i.color};flex-shrink:0"></div>
+        <span style="font-size:12px;color:#86738c;font-family:'Schibsted Grotesk',sans-serif">${i.label}</span>
       </div>
-      <span style="font-size:12px;font-weight:600;color:#1e293b">${i.val}</span>
+      <span style="font-size:13px;font-weight:700;color:#2a0039;font-family:'Newsreader',serif">${i.val}</span>
     </div>`
   ).join('');
 }
