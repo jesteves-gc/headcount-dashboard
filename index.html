@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Headcount Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
+.header{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.header-left h1{color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px}
+.header-left p{color:#94a3b8;font-size:13px;margin-top:2px}
+.header-badge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500}
+.controls{background:#fff;border-bottom:1px solid #e2e8f0;padding:16px 32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.controls label{font-size:13px;font-weight:600;color:#64748b;white-space:nowrap}
+.filter-select{border:1px solid #e2e8f0;border-radius:8px;padding:7px 12px;font-size:13px;font-family:'Inter',sans-serif;color:#1e293b;background:#fff;cursor:pointer;min-width:200px}
+.filter-select:focus{outline:none;border-color:#2563eb}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all 0.15s}
+.pill:hover{border-color:#2563eb;color:#2563eb}
+.pill.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.main{padding:24px 32px;max-width:1600px;margin:0 auto}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{background:#fff;border-radius:12px;padding:20px;border-left:4px solid;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:transform 0.15s}
+.kpi-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.kpi-card.in-seat{border-color:#2563eb}
+.kpi-card.ans{border-color:#f59e0b}
+.kpi-card.in-market{border-color:#10b981}
+.kpi-card.tbh{border-color:#8b5cf6}
+.kpi-card.total{border-color:#1e293b}
+.kpi-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.kpi-card.in-seat .kpi-icon{background:#dbeafe}
+.kpi-card.ans .kpi-icon{background:#fef3c7}
+.kpi-card.in-market .kpi-icon{background:#d1fae5}
+.kpi-card.tbh .kpi-icon{background:#ede9fe}
+.kpi-card.total .kpi-icon{background:#f1f5f9}
+.kpi-number{font-size:32px;font-weight:700;line-height:1;margin-bottom:4px}
+.kpi-card.in-seat .kpi-number{color:#2563eb}
+.kpi-card.ans .kpi-number{color:#d97706}
+.kpi-card.in-market .kpi-number{color:#059669}
+.kpi-card.tbh .kpi-number{color:#7c3aed}
+.kpi-card.total .kpi-number{color:#1e293b}
+.kpi-label{font-size:13px;font-weight:600;color:#374151;margin-bottom:2px}
+.kpi-sub{font-size:11px;color:#94a3b8}
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.chart-card h3{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:4px}
+.chart-card p{font-size:12px;color:#94a3b8;margin-bottom:16px}
+.chart-wrap{position:relative}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap}
+.tab:hover{color:#2563eb}
+.tab.active{color:#2563eb;border-bottom-color:#2563eb;font-weight:600}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.table-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden}
+.table-header{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+.table-header h3{font-size:14px;font-weight:600;color:#1e293b}
+.table-count{background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+thead th{background:#f8fafc;padding:10px 16px;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background 0.1s}
+tbody tr:hover{background:#f8fafc}
+tbody td{padding:10px 16px;font-size:13px;color:#374151}
+tbody td:first-child{font-weight:500;color:#1e293b}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-green{background:#d1fae5;color:#047857}
+.badge-amber{background:#fef3c7;color:#b45309}
+.badge-purple{background:#ede9fe;color:#6d28d9}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-slate{background:#f1f5f9;color:#475569}
+.empty-state{padding:48px;text-align:center;color:#94a3b8;font-size:14px}
+.section-title{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:16px}
+.progress-bar{height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.5s}
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.metric-mini{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);text-align:center}
+.metric-mini .val{font-size:22px;font-weight:700;color:#1e293b}
+.metric-mini .lbl{font-size:11px;color:#94a3b8;margin-top:2px}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.charts-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.kpi-grid{grid-template-columns:1fr 1fr}.main{padding:16px}.header{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Headcount Planning Dashboard</h1>
+    <p>Current Forecast · FY2026</p>
+  </div>
+  <div class="header-badge">As of March 31, 2026</div>
+</div>
+
+<div class="controls">
+  <label>Filter by Team</label>
+  <select class="filter-select" id="teamFilter" onchange="applyFilter()">
+    <option value="All">All Teams</option>
+    <optgroup label="── Functional">
+      <option value="Administration">Administration</option>
+      <option value="Aviation">Aviation</option>
+      <option value="Company Infrastructure">Company Infrastructure</option>
+      <option value="Company Operations">Company Operations</option>
+      <option value="Finance">Finance</option>
+      <option value="GC Institute">GC Institute</option>
+      <option value="Human Resources">Human Resources</option>
+      <option value="Investor Relations">Investor Relations</option>
+      <option value="Legal & Compliance">Legal &amp; Compliance</option>
+      <option value="Management">Management</option>
+      <option value="Marketing & Communication">Marketing &amp; Communication</option>
+    </optgroup>
+    <optgroup label="── Other Segments">
+      <option value="EnergyCo">EnergyCo</option>
+      <option value="GC Capital">GC Capital</option>
+      <option value="HATCo">HATCo</option>
+      <option value="IMCo">IMCo</option>
+      <option value="Percepta">Percepta</option>
+    </optgroup>
+  </select>
+
+  <label style="margin-left:12px">Plan Status</label>
+  <div class="filter-pills">
+    <span class="pill active" data-plan="All" onclick="setPlanFilter(this,'All')">All</span>
+    <span class="pill" data-plan="In plan" onclick="setPlanFilter(this,'In plan')">In Plan</span>
+    <span class="pill" data-plan="Net New Approved" onclick="setPlanFilter(this,'Net New Approved')">Net New Approved</span>
+    <span class="pill" data-plan="Backfill" onclick="setPlanFilter(this,'Backfill')">Backfill</span>
+    <span class="pill" data-plan="Not in plan" onclick="setPlanFilter(this,'Not in plan')">Not In Plan</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="kpi-grid">
+    <div class="kpi-card in-seat">
+      <div class="kpi-icon">🪑</div>
+      <div class="kpi-number" id="kpi-inseat">364</div>
+      <div class="kpi-label">In Seat</div>
+      <div class="kpi-sub">Active employees currently working</div>
+    </div>
+    <div class="kpi-card ans">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-number" id="kpi-ans">23</div>
+      <div class="kpi-label">Accepted — Not Started</div>
+      <div class="kpi-sub">Offer accepted, pending start date</div>
+    </div>
+    <div class="kpi-card in-market">
+      <div class="kpi-icon">🔍</div>
+      <div class="kpi-number" id="kpi-inmarket">46</div>
+      <div class="kpi-label">Roles In Market</div>
+      <div class="kpi-sub">Actively recruiting now</div>
+    </div>
+    <div class="kpi-card tbh">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-number" id="kpi-tbh">44</div>
+      <div class="kpi-label">Planned — Not In Market</div>
+      <div class="kpi-sub">Approved roles, not yet recruiting</div>
+    </div>
+    <div class="kpi-card total">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-number" id="kpi-total">477</div>
+      <div class="kpi-label">Total Pipeline</div>
+      <div class="kpi-sub" id="kpi-total-sub">76% filled · 24% open</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Headcount by Team</h3>
+      <p>Breakdown of all headcount statuses across teams</p>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Pipeline Composition</h3>
+      <p>Current snapshot of total workforce pipeline</p>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="donutChart"></canvas>
+      </div>
+      <div style="margin-top:16px" id="donut-legend"></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('ans')">Accepted — Not Started <span id="tab-ans-count" style="margin-left:6px;background:#fef3c7;color:#b45309;padding:1px 7px;border-radius:10px;font-size:11px">23</span></div>
+    <div class="tab" onclick="switchTab('inmarket')">Roles In Market <span id="tab-inmarket-count" style="margin-left:6px;background:#d1fae5;color:#047857;padding:1px 7px;border-radius:10px;font-size:11px">46</span></div>
+    <div class="tab" onclick="switchTab('tbh')">Planned — Not In Market <span id="tab-tbh-count" style="margin-left:6px;background:#ede9fe;color:#6d28d9;padding:1px 7px;border-radius:10px;font-size:11px">44</span></div>
+    <div class="tab" onclick="switchTab('overview')">Team Overview</div>
+  </div>
+
+  <div id="panel-ans" class="tab-panel active">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Employees with Accepted Offers — Pending Start</h3>
+        <span class="table-count" id="ans-count-badge">23 people</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Title</th>
+            <th>Division</th>
+            <th>Team</th>
+            <th>Start Date</th>
+            <th>Days Out</th>
+            <th>Location</th>
+            <th>Type</th>
+            <th>Backfill For</th>
+          </tr>
+        </thead>
+        <tbody id="ans-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-inmarket" class="tab-panel">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Open Roles — Actively Recruiting</h3>
+        <span class="table-count" id="inmarket-count-badge">46 roles</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Division</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Plan Status</th>
+            <th>Target Start</th>
+            <th>Hiring Manager</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody id="inmarket-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-tbh" class="tab-panel">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Planned Roles — Not Yet In Market</h3>
+        <span class="table-count" id="tbh-count-badge">44 roles</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Division</th>
+            <th>Department</th>
+            <th>Plan Status</th>
+            <th>Target Start</th>
+            <th>Hiring Manager</th>
+            <th>Location</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="tbh-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-overview" class="tab-panel">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Team-by-Team Headcount Summary</h3>
+        <span class="table-count" id="overview-count-badge">All Teams</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Team / Division</th>
+            <th>Segment</th>
+            <th style="color:#2563eb">In Seat</th>
+            <th style="color:#d97706">Accepted NS</th>
+            <th style="color:#059669">In Market</th>
+            <th style="color:#7c3aed">Planned TBH</th>
+            <th>Total</th>
+            <th>Fill Rate</th>
+          </tr>
+        </thead>
+        <tbody id="overview-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+
+const TODAY = new Date('2026-03-31');
+
+const teamStats = [
+  { team:'Administration',           segment:'Functional', inSeat:36, ans:2,  inMarket:1,  tbh:0  },
+  { team:'Aviation',                 segment:'Functional', inSeat:6,  ans:0,  inMarket:0,  tbh:0  },
+  { team:'Company Infrastructure',   segment:'Functional', inSeat:12, ans:0,  inMarket:1,  tbh:0  },
+  { team:'Company Operations',       segment:'Functional', inSeat:35, ans:0,  inMarket:2,  tbh:7  },
+  { team:'Finance',                  segment:'Functional', inSeat:46, ans:2,  inMarket:5,  tbh:5  },
+  { team:'GC Institute',             segment:'Functional', inSeat:8,  ans:0,  inMarket:0,  tbh:4  },
+  { team:'Human Resources',          segment:'Functional', inSeat:15, ans:0,  inMarket:2,  tbh:1  },
+  { team:'Investor Relations',       segment:'Functional', inSeat:12, ans:0,  inMarket:3,  tbh:3  },
+  { team:'Legal & Compliance',       segment:'Functional', inSeat:13, ans:0,  inMarket:1,  tbh:6  },
+  { team:'Management',               segment:'Functional', inSeat:6,  ans:0,  inMarket:0,  tbh:0  },
+  { team:'Marketing & Communication',segment:'Functional', inSeat:16, ans:1,  inMarket:0,  tbh:3  },
+  { team:'EnergyCo',                 segment:'EnergyCo',  inSeat:7,  ans:0,  inMarket:0,  tbh:0  },
+  { team:'GC Capital',               segment:'GC Capital',inSeat:61, ans:3,  inMarket:4,  tbh:0  },
+  { team:'HATCo',                    segment:'HATCo',     inSeat:6,  ans:1,  inMarket:1,  tbh:0  },
+  { team:'IMCo',                     segment:'IMCo',      inSeat:44, ans:2,  inMarket:1,  tbh:0  },
+  { team:'Percepta',                 segment:'Percepta',  inSeat:41, ans:12, inMarket:25, tbh:15 },
+];
+
+const ansEmployees = [
+  { name:'Derek Shen',           title:'Embedded Product Manager',        division:'Percepta',                  team:'Percepta',    hireDate:'2026-04-07', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Rohan Nagalkar',       title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-04-07', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Tianqi Sun',           title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-04-07', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Salvador Martinez',    title:'Senior Client Service Associate', division:'GC Wealth',                 team:'GC Capital',  hireDate:'2026-04-07', type:'In plan',  city:'San Francisco', country:'USA',   backfillFor:'' },
+  { name:'Chloe-Lynn Chartouni', title:'Executive Assistant',             division:'Administration',            team:'Administration', hireDate:'2026-04-07', type:'Backfill', city:'San Francisco', country:'USA', backfillFor:'Ana Portugal' },
+  { name:'Anushka Gupta',        title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-04-14', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Dylan Brady',          title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-04-14', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Kali Hahn',            title:'Director, Global Tax',            division:'Finance',                   team:'Finance',     hireDate:'2026-04-21', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Robert Scott',         title:'Research Analyst',                division:'GC Wealth',                 team:'GC Capital',  hireDate:'2026-04-21', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Kyleb Bello',          title:'Embedded Product Manager',        division:'Percepta',                  team:'Percepta',    hireDate:'2026-04-21', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Loren Curry',          title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-04-21', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Niamh Coombes',        title:'Event Specialist',                division:'Marketing & Communication', team:'Marketing & Communication', hireDate:'2026-05-18', type:'Backfill', city:'London', country:'UK', backfillFor:'Sophia Jaenecke' },
+  { name:'Sonam Khare',          title:'Partner',                         division:'Creation',                  team:'GC Capital',  hireDate:'2026-05-19', type:'In plan',  city:'San Francisco', country:'USA',   backfillFor:'' },
+  { name:'Wei Ma',               title:'Research Scientist',              division:'Percepta',                  team:'Percepta',    hireDate:'2026-05-19', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Yao Jiang',            title:'Research Scientist',              division:'Percepta',                  team:'Percepta',    hireDate:'2026-05-19', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Victoria Yuan',        title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-05-19', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Katherine Sun',        title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-05-19', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Chetana Hegde',        title:'Analyst, Accounts Payable',       division:'Finance',                   team:'Finance',     hireDate:'2026-06-01', type:'In plan',  city:'Bengaluru',     country:'India', backfillFor:'' },
+  { name:'Aditya Goel',          title:'Applied AI Engineer',             division:'Percepta',                  team:'Percepta',    hireDate:'2026-06-09', type:'In plan',  city:'New York',      country:'USA',   backfillFor:'' },
+  { name:'Ahmad Nasir',          title:'Senior Associate',                division:'Venture',                   team:'IMCo',        hireDate:'2026-06-30', type:'Backfill', city:'San Francisco', country:'USA',   backfillFor:'William McCreadie' },
+  { name:'Otto Salmi',           title:'Senior Associate',                division:'Venture',                   team:'IMCo',        hireDate:'2026-06-30', type:'Backfill', city:'San Francisco', country:'USA',   backfillFor:'Matthew Byington' },
+  { name:'Verena Huber-Opacak',  title:'Executive Assistant',             division:'Administration',            team:'Administration', hireDate:'2026-07-01', type:'Backfill', city:'Berlin', country:'Germany', backfillFor:'Carolin Winzer' },
+  { name:'HATCo Team Member',    title:'(Name Pending)',                  division:'HATCo Services',            team:'HATCo',       hireDate:'2026-04-01', type:'In plan',  city:'San Francisco', country:'USA',   backfillFor:'' },
+];
+
+const inMarketRoles = [
+  // Functional
+  { id:254, title:'Executive Project Coordinator',          division:'Company Infrastructure',  dept:'Company Infrastructure',  status:'In Market',     planStatus:'Not in plan',        hireDate:'2026-03-01', hiringMgr:'Alison Jordan',       city:'Berlin',        backfillFor:'' },
+  { id:263, title:'Finance Manager, India',                 division:'Finance',                 dept:'Global Accounting Solutions', status:'In Market',  planStatus:'Not in plan',        hireDate:'2026-04-01', hiringMgr:'Ajoy Prabakar',        city:'Bangalore',     backfillFor:'' },
+  { id:84,  title:'Accounting Manager, Transformations',    division:'Finance',                 dept:'Global Accounting Solutions', status:'In Market',  planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'Michael Jasinski',     city:'New York',      backfillFor:'' },
+  { id:97,  title:'VP, Business Innovation',                division:'Finance',                 dept:'Global Accounting Solutions', status:'In Market',  planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'Paul Fielding',        city:'San Francisco', backfillFor:'' },
+  { id:265, title:'Director, Capital Markets',              division:'Finance',                 dept:'Equity Fund Finance',     status:'In Market',     planStatus:'Backfill',           hireDate:'2026-05-01', hiringMgr:'Paul Fielding',        city:'San Francisco', backfillFor:'Christopher Kauffman' },
+  { id:87,  title:'Director, Finance Europe',               division:'Finance',                 dept:'Global Accounting Solutions', status:'Offer Extended', planStatus:'Backfill',       hireDate:'2026-07-01', hiringMgr:'Paul Fielding',        city:'Berlin',        backfillFor:'Florian Wurzer' },
+  { id:144, title:'VP, GC Capital Support',                 division:'Human Resources',         dept:'Human Resources',         status:'In Market',     planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'Anita Sands',          city:'San Francisco', backfillFor:'' },
+  { id:145, title:'VP/Director, People Operations',         division:'Human Resources',         dept:'Human Resources',         status:'In Market',     planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'Anita Sands',          city:'San Francisco', backfillFor:'' },
+  { id:150, title:'Associate, US Sales / Distribution',     division:'Investor Relations',      dept:'Investor Relations',      status:'In Market',     planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'Amrita Mainthia',      city:'San Francisco', backfillFor:'' },
+  { id:200, title:'Director, US Sales / Distribution',      division:'Investor Relations',      dept:'Investor Relations',      status:'In Market',     planStatus:'In plan',            hireDate:'2026-04-01', hiringMgr:'Amrita Mainthia',      city:'New York',      backfillFor:'' },
+  { id:258, title:'Director, Fundraising & Product Strategy',division:'Investor Relations',     dept:'Investor Relations',      status:'In Market',     planStatus:'Net New Approved',   hireDate:'2026-04-01', hiringMgr:'Amrita Mainthia',      city:'New York',      backfillFor:'' },
+  { id:155, title:'Compliance Analyst',                     division:'Legal & Compliance',      dept:'Legal Counsel',           status:'Offer Extended', planStatus:'In plan',           hireDate:'2026-05-19', hiringMgr:'Christopher McCain',   city:'New York',      backfillFor:'' },
+  { id:253, title:'Executive Assistant',                    division:'Administration',          dept:'Executive Support',       status:'In Market',     planStatus:'Backfill',           hireDate:'2026-07-01', hiringMgr:'Matt Hollinshead',     city:'Berlin',        backfillFor:'Juana Murschitzke' },
+  { id:160, title:'Data Engineer',                          division:'Company Operations',      dept:'Platform',                status:'In Market',     planStatus:'Backfill',           hireDate:'2026-03-01', hiringMgr:'Bobak Moallemi',       city:'San Francisco', backfillFor:'Andrew Calder' },
+  { id:163, title:'Full Stack Engineer',                    division:'Company Operations',      dept:'Platform',                status:'In Market',     planStatus:'Backfill',           hireDate:'2026-05-01', hiringMgr:'Bobak Moallemi',       city:'San Francisco', backfillFor:'Nipun Gupta' },
+  { id:177, title:'Engagement PM (Q2\'26)',                 division:'HATCo',                   dept:'HATCo Services',          status:'In Market',     planStatus:'In plan',            hireDate:'2026-04-01', hiringMgr:'Daryl Tol',            city:'San Francisco', backfillFor:'' },
+  // GC Capital / Investment
+  { id:240, title:'Associate (Wealth Management)',          division:'GC Capital',              dept:'GC Wealth',               status:'In Market',     planStatus:'Net New Approved',   hireDate:'2026-04-01', hiringMgr:'Dorothy Bowers',       city:'San Francisco', backfillFor:'' },
+  { id:109, title:'Principal',                              division:'GC Capital',              dept:'Creation',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'Madhu Namburi',        city:'San Francisco', backfillFor:'' },
+  { id:111, title:'Analyst',                                division:'GC Capital',              dept:'Creation',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'Marc Bhargava',        city:'San Francisco', backfillFor:'' },
+  { id:239, title:'Talent (Creation)',                      division:'GC Capital',              dept:'Creation',                status:'In Market',     planStatus:'Backfill',           hireDate:'2026-03-01', hiringMgr:'Marc Bhargava',        city:'San Francisco', backfillFor:'Nmachi Jidenma' },
+  // IMCo / Venture
+  { id:33,  title:'Publics Senior Associate',               division:'IMCo',                    dept:'Venture',                 status:'In Market',     planStatus:'Not in plan',        hireDate:'2026-05-01', hiringMgr:'Sreyas Misra',         city:'San Francisco', backfillFor:'' },
+  // Percepta — 25 roles (24 In Market + 1 Offer Accepted)
+  { id:68,  title:'Deployment Strategist',                  division:'Percepta',                dept:'Percepta',                status:'Offer Accepted',planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:46,  title:'Head of Ops',                            division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:189, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-04-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:191, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-05-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:194, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-05-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:133, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-06-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:135, title:'Researcher (FY26 Planning)',              division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-06-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:195, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-06-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:196, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-06-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:198, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-07-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:199, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-07-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:201, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-08-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:203, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-08-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:218, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-09-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:219, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-09-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:220, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-09-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:221, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-09-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:222, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-09-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:224, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-10-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:225, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-10-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:226, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-10-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:227, title:'Product Manager (FY26 Planning)',         division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-10-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:228, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-11-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:229, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-11-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+  { id:232, title:'Engineer (FY26 Planning)',                division:'Percepta',                dept:'Percepta',                status:'In Market',     planStatus:'In plan',            hireDate:'2026-11-01', hiringMgr:'',                     city:'New York',      backfillFor:'' },
+];
+
+const tbhRoles = [
+  // Company Operations
+  { id:157, title:'Partnerships (FY26 Planning)',            division:'Company Operations', dept:'Founder Experience + Partnerships', planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Maryam Sabour',        city:'San Francisco', notes:'Split load / scale work given increased strategic partners' },
+  { id:158, title:'BizOps Analyst — GC AI Transformation',  division:'Company Operations', dept:'Founder Experience + Partnerships', planStatus:'In plan',  hireDate:'2026-05-01', hiringMgr:'Audrey Anderson',       city:'San Francisco', notes:'Facilitate adoption of AI workflows' },
+  { id:170, title:'Office HC London (FY26 Planning)',        division:'Company Operations', dept:'Office Services',                  planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Jon Rehagen',           city:'London',        notes:'Front desk support in London office' },
+  { id:164, title:'Platform Engineer (FY26 Planning)',       division:'Company Operations', dept:'Platform',                         planStatus:'In plan',  hireDate:'2026-05-01', hiringMgr:'Bobak Moallemi',        city:'San Francisco', notes:'Funded via Proxet reduction' },
+  { id:165, title:'Platform Engineer (FY26 Planning)',       division:'Company Operations', dept:'Platform',                         planStatus:'In plan',  hireDate:'2026-08-01', hiringMgr:'Bobak Moallemi',        city:'San Francisco', notes:'Funded via Proxet reduction' },
+  { id:204, title:'Famiglia — Ecosystem Intelligence',       division:'Company Operations', dept:'Founder Experience + Partnerships', planStatus:'Backfill', hireDate:'2026-03-01', hiringMgr:'Alison Jordan',        city:'San Francisco', notes:'' },
+  { id:206, title:'Director, Org Architecture & Talent Programs', division:'Company Operations', dept:'Relationships',             planStatus:'Backfill', hireDate:'2026-03-01', hiringMgr:'Alison Jordan',        city:'San Francisco', notes:'' },
+  // Finance
+  { id:147, title:'LP Services Support (FY26 Planning)',     division:'Finance',            dept:'Equity Fund Finance',              planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:"Laura L'Abbe",         city:'New York',      notes:'' },
+  { id:86,  title:'Accountant/Analyst, Management Company',  division:'Finance',            dept:'Global Accounting Solutions',      planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Michael Jasinski',     city:'New York',      notes:'' },
+  { id:174, title:'Capital Solutions FP&A (FY26 Planning)',  division:'Finance',            dept:'Global Accounting Solutions',      planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Paul Fielding',        city:'San Francisco', notes:'' },
+  { id:175, title:'Transformation Cos FP&A (FY26 Planning)',  division:'Finance',           dept:'Global Accounting Solutions',      planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Paul Fielding',        city:'San Francisco', notes:'' },
+  { id:159, title:'Portfolio Ops Analyst (FY26 Planning)',   division:'Finance',            dept:'Portfolio Planning & Analytics',   planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Paul Fielding',        city:'New York',      notes:'' },
+  // GC Institute
+  { id:72,  title:'Policy Partnerships Director',            division:'GC Institute',       dept:'GC Institute',                     planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Teresa Carlson',       city:'Washington D.C.', notes:'Scale impact via 3rd party partners' },
+  { id:114, title:'VP, Business Development Government',     division:'GC Institute',       dept:'GC Institute',                     planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Teresa Carlson',       city:'Washington D.C.', notes:'Focus on procurement / capturing contracts' },
+  { id:166, title:'VP Policy / India',                       division:'GC Institute',       dept:'GC Institute',                     planStatus:'In plan',  hireDate:'2026-04-01', hiringMgr:'Teresa Carlson',       city:'Bangalore',     notes:'Mirror image of European role for India + ME' },
+  { id:71,  title:'Policy Analyst, Healthcare',              division:'GC Institute',       dept:'GC Institute',                     planStatus:'In plan',  hireDate:'2026-07-01', hiringMgr:'Teresa Carlson',       city:'Washington D.C.', notes:'Split load with Alex Allaire' },
+  // HR
+  { id:149, title:'Manager Placeholder (FY26 Planning)',     division:'Human Resources',    dept:'Human Resources',                  planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Anita Sands',          city:'San Francisco', notes:'' },
+  // Investor Relations
+  { id:259, title:'VP, Retail',                              division:'Investor Relations', dept:'Investor Relations',               planStatus:'Net New Approved', hireDate:'2026-05-01', hiringMgr:'Amrita Mainthia', city:'San Francisco', notes:'' },
+  { id:7,   title:'Europe / ME Sales / Distribution',        division:'Investor Relations', dept:'Investor Relations',               planStatus:'In plan',  hireDate:'2026-08-01', hiringMgr:'Amrita Mainthia',      city:'London',        notes:'' },
+  { id:257, title:'VP, Fundraising & Product Strategy',      division:'Investor Relations', dept:'Investor Relations',               planStatus:'Backfill', hireDate:'2026-05-01', hiringMgr:'Amrita Mainthia',      city:'New York',      notes:'SF or NY' },
+  // Legal & Compliance
+  { id:151, title:'Director, Compliance',                    division:'Legal & Compliance', dept:'Compliance',                       planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Christopher McCain',   city:'New York',      notes:'' },
+  { id:6,   title:'Paralegal',                               division:'Legal & Compliance', dept:'Legal Counsel',                    planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Christopher McCain',   city:'London',        notes:'' },
+  { id:152, title:'Corporate Focused Attorney',              division:'Legal & Compliance', dept:'Legal Counsel',                    planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Christopher McCain',   city:'New York',      notes:'' },
+  { id:153, title:'CVF Attorney',                            division:'Legal & Compliance', dept:'Legal Counsel',                    planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Christopher McCain',   city:'New York',      notes:'' },
+  { id:154, title:'Fund Formation & Compliance Attorney',    division:'Legal & Compliance', dept:'Legal Counsel',                    planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Christopher McCain',   city:'New York',      notes:'' },
+  { id:208, title:'Paralegal (India)',                       division:'Legal & Compliance', dept:'Legal Counsel',                    planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Christopher McCain',   city:'Bangalore',     notes:'' },
+  // Marketing
+  { id:212, title:'Manager, India Comms',                    division:'Marketing & Communication', dept:'Communications',           planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Arielle Gross Samuels', city:'Bangalore',    notes:'Focus on Events but could scale x-Comms, Ops' },
+  { id:190, title:'Event Specialist, SF',                    division:'Marketing & Communication', dept:'Events & Experiential',    planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Erin Himel',           city:'San Francisco', notes:'Urgent backup for Hayley' },
+  { id:193, title:'Event Specialist, DC',                    division:'Marketing & Communication', dept:'Events & Experiential',    planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'Erin Himel',           city:'New York',      notes:'Urgent need to support GCI' },
+  // Percepta — Not Started
+  { id:43,  title:'Infrastructure Hire',                     division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:45,  title:'GM Healthcare',                           division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:69,  title:'Deployment Strategist',                   division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:70,  title:'Deployment Strategist',                   division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:184, title:'Engineer (FY26 Planning)',                 division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:186, title:'Engineer (FY26 Planning)',                 division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:187, title:'Engineer (FY26 Planning)',                 division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-03-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:188, title:'Engineer (FY26 Planning)',                 division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-04-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:192, title:'Researcher (FY26 Planning)',               division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-05-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:140, title:'Engineer (FY26 Planning)',                 division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-08-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:141, title:'Researcher (FY26 Planning)',               division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-08-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:142, title:'Engineer (FY26 Planning)',                 division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-08-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:223, title:'Researcher (FY26 Planning)',               division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-10-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:230, title:'Product Manager (FY26 Planning)',          division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-11-01', hiringMgr:'',                     city:'New York',      notes:'' },
+  { id:231, title:'Researcher (FY26 Planning)',               division:'Percepta',           dept:'Percepta',                         planStatus:'In plan',  hireDate:'2026-11-01', hiringMgr:'',                     city:'New York',      notes:'' },
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+
+let currentTeam = 'All';
+let currentPlan = 'All';
+let currentTab = 'ans';
+let barChart, donutChart;
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+
+function teamMatches(item, team) {
+  if (team === 'All') return true;
+  return item.team === team || item.division === team;
+}
+
+function planMatches(item, plan) {
+  if (plan === 'All') return true;
+  return item.type === plan || item.planStatus === plan;
+}
+
+function daysOut(dateStr) {
+  const d = new Date(dateStr);
+  const diff = Math.round((d - TODAY) / (1000*60*60*24));
+  return diff;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function typeBadge(type) {
+  const map = {
+    'In plan': 'badge-blue',
+    'Backfill': 'badge-amber',
+    'Net New Approved': 'badge-green',
+    'Not in plan': 'badge-red',
+  };
+  return `<span class="badge ${map[type]||'badge-slate'}">${type}</span>`;
+}
+
+function statusBadge(status) {
+  const map = {
+    'In Market': 'badge-green',
+    'Offer Extended': 'badge-amber',
+    'Offer Accepted': 'badge-blue',
+    'Not Started': 'badge-purple',
+  };
+  return `<span class="badge ${map[status]||'badge-slate'}">${status}</span>`;
+}
+
+function daysOutBadge(days) {
+  if (days < 0) return `<span class="badge badge-red">${Math.abs(days)}d ago</span>`;
+  if (days <= 14) return `<span class="badge badge-amber">${days}d</span>`;
+  if (days <= 30) return `<span class="badge badge-blue">${days}d</span>`;
+  return `<span style="color:#64748b;font-size:13px">${days}d</span>`;
+}
+
+// ═══════════════════════════════════════════
+// KPI CALCULATION
+// ═══════════════════════════════════════════
+
+function getKPIs(team, plan) {
+  // Use teamStats for aggregate headcount numbers
+  const rows = team === 'All' ? teamStats : teamStats.filter(r => r.team === team);
+  const inSeat = rows.reduce((a,r) => a+r.inSeat, 0);
+  const inMarket = rows.reduce((a,r) => a+r.inMarket, 0);
+  const tbh = rows.reduce((a,r) => a+r.tbh, 0);
+  // ANS from actual roster (more accurate)
+  const ansCount = ansEmployees.filter(e => teamMatches(e, team) && planMatches(e, plan)).length;
+  const total = inSeat + ansCount + inMarket + tbh;
+  return { inSeat, ans: ansCount, inMarket, tbh, total };
+}
+
+// ═══════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════
+
+function renderKPIs() {
+  const k = getKPIs(currentTeam, currentPlan);
+  document.getElementById('kpi-inseat').textContent = k.inSeat;
+  document.getElementById('kpi-ans').textContent = k.ans;
+  document.getElementById('kpi-inmarket').textContent = k.inMarket;
+  document.getElementById('kpi-tbh').textContent = k.tbh;
+  document.getElementById('kpi-total').textContent = k.total;
+  const filled = k.total > 0 ? Math.round((k.inSeat + k.ans) / k.total * 100) : 0;
+  document.getElementById('kpi-total-sub').textContent = `${filled}% filled · ${100-filled}% open`;
+
+  // Tab counts
+  const ansCount = ansEmployees.filter(e => teamMatches(e, currentTeam) && planMatches(e, currentPlan)).length;
+  const imCount  = inMarketRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan)).length;
+  const tbhCount = tbhRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan)).length;
+  document.getElementById('tab-ans-count').textContent = ansCount;
+  document.getElementById('tab-inmarket-count').textContent = imCount;
+  document.getElementById('tab-tbh-count').textContent = tbhCount;
+  document.getElementById('ans-count-badge').textContent = `${ansCount} people`;
+  document.getElementById('inmarket-count-badge').textContent = `${imCount} roles`;
+  document.getElementById('tbh-count-badge').textContent = `${tbhCount} roles`;
+}
+
+function renderANSTable() {
+  const rows = ansEmployees.filter(e => teamMatches(e, currentTeam) && planMatches(e, currentPlan))
+    .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
+  const tbody = document.getElementById('ans-table-body');
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
+  tbody.innerHTML = rows.map(e => {
+    const days = daysOut(e.hireDate);
+    return `<tr>
+      <td>${e.name}</td>
+      <td style="color:#64748b">${e.title}</td>
+      <td>${e.division}</td>
+      <td><span class="badge badge-slate">${e.team}</span></td>
+      <td>${formatDate(e.hireDate)}</td>
+      <td>${daysOutBadge(days)}</td>
+      <td style="color:#64748b">${e.city}, ${e.country}</td>
+      <td>${typeBadge(e.type)}</td>
+      <td style="color:#94a3b8;font-style:italic">${e.backfillFor || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInMarketTable() {
+  const rows = inMarketRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan))
+    .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
+  const tbody = document.getElementById('inmarket-table-body');
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
+  tbody.innerHTML = rows.map((r,i) => `<tr>
+    <td style="color:#94a3b8">${r.id}</td>
+    <td>${r.title}</td>
+    <td><span class="badge badge-slate">${r.division}</span></td>
+    <td style="color:#64748b">${r.dept}</td>
+    <td>${statusBadge(r.status)}</td>
+    <td>${typeBadge(r.planStatus)}</td>
+    <td>${formatDate(r.hireDate)}</td>
+    <td style="color:#64748b">${r.hiringMgr || '—'}</td>
+    <td style="color:#64748b">${r.city}</td>
+  </tr>`).join('');
+}
+
+function renderTBHTable() {
+  const rows = tbhRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan))
+    .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
+  const tbody = document.getElementById('tbh-table-body');
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td style="color:#94a3b8">${r.id}</td>
+    <td>${r.title}</td>
+    <td><span class="badge badge-slate">${r.division}</span></td>
+    <td style="color:#64748b">${r.dept}</td>
+    <td>${typeBadge(r.planStatus)}</td>
+    <td>${formatDate(r.hireDate)}</td>
+    <td style="color:#64748b">${r.hiringMgr || '—'}</td>
+    <td style="color:#64748b">${r.city}</td>
+    <td style="color:#94a3b8;font-size:12px;max-width:200px">${r.notes || '—'}</td>
+  </tr>`).join('');
+}
+
+function renderOverviewTable() {
+  const rows = currentTeam === 'All' ? teamStats : teamStats.filter(r => r.team === currentTeam);
+  const tbody = document.getElementById('overview-table-body');
+  tbody.innerHTML = rows.map(r => {
+    const total = r.inSeat + r.ans + r.inMarket + r.tbh;
+    const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
+    return `<tr>
+      <td>${r.team}</td>
+      <td><span class="badge badge-slate">${r.segment}</span></td>
+      <td style="color:#2563eb;font-weight:600">${r.inSeat}</td>
+      <td style="color:#d97706;font-weight:600">${r.ans || '—'}</td>
+      <td style="color:#059669;font-weight:600">${r.inMarket || '—'}</td>
+      <td style="color:#7c3aed;font-weight:600">${r.tbh || '—'}</td>
+      <td style="font-weight:600">${total}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-bar" style="width:80px">
+            <div class="progress-fill" style="width:${fillRate}%;background:${fillRate>=80?'#10b981':fillRate>=60?'#f59e0b':'#ef4444'}"></div>
+          </div>
+          <span style="font-size:12px;color:#64748b">${fillRate}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('overview-count-badge').textContent = currentTeam === 'All' ? 'All Teams' : currentTeam;
+}
+
+// ═══════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════
+
+function initCharts() {
+  // Bar chart
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  const labels = teamStats.map(t => t.team.length > 18 ? t.team.replace(' & ', ' &\n') : t.team);
+  barChart = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: teamStats.map(t => t.team),
+      datasets: [
+        { label: 'In Seat',    data: teamStats.map(t=>t.inSeat),   backgroundColor: '#2563eb', borderRadius: 3 },
+        { label: 'Accepted NS',data: teamStats.map(t=>t.ans),      backgroundColor: '#f59e0b', borderRadius: 3 },
+        { label: 'In Market',  data: teamStats.map(t=>t.inMarket), backgroundColor: '#10b981', borderRadius: 3 },
+        { label: 'Planned TBH',data: teamStats.map(t=>t.tbh),      backgroundColor: '#8b5cf6', borderRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { family:'Inter', size:11 }, boxWidth:12, padding:16 } } },
+      scales: {
+        x: { stacked: true, ticks: { font:{family:'Inter',size:10}, maxRotation:45 }, grid:{display:false} },
+        y: { stacked: true, ticks: { font:{family:'Inter',size:11} }, grid:{color:'#f1f5f9'} }
+      }
+    }
+  });
+
+  // Donut chart
+  const donutCtx = document.getElementById('donutChart').getContext('2d');
+  const k = getKPIs('All','All');
+  donutChart = new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['In Seat','Accepted NS','In Market','Planned TBH'],
+      datasets: [{ data: [k.inSeat, k.ans, k.inMarket, k.tbh], backgroundColor:['#2563eb','#f59e0b','#10b981','#8b5cf6'], borderWidth:0, hoverOffset:4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '70%',
+      plugins: { legend: { display:false } }
+    }
+  });
+
+  renderDonutLegend(k);
+}
+
+function renderDonutLegend(k) {
+  const items = [
+    { label:'In Seat', val:k.inSeat, color:'#2563eb' },
+    { label:'Accepted NS', val:k.ans, color:'#f59e0b' },
+    { label:'In Market', val:k.inMarket, color:'#10b981' },
+    { label:'Planned TBH', val:k.tbh, color:'#8b5cf6' },
+  ];
+  document.getElementById('donut-legend').innerHTML = items.map(i =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:10px;height:10px;border-radius:2px;background:${i.color};flex-shrink:0"></div>
+        <span style="font-size:12px;color:#374151">${i.label}</span>
+      </div>
+      <span style="font-size:12px;font-weight:600;color:#1e293b">${i.val}</span>
+    </div>`
+  ).join('');
+}
+
+function updateBarChart(team) {
+  if (!barChart) return;
+  const rows = team === 'All' ? teamStats : teamStats.filter(r => r.team === team);
+  barChart.data.labels = rows.map(t => t.team);
+  barChart.data.datasets[0].data = rows.map(t=>t.inSeat);
+  barChart.data.datasets[1].data = rows.map(t=>t.ans);
+  barChart.data.datasets[2].data = rows.map(t=>t.inMarket);
+  barChart.data.datasets[3].data = rows.map(t=>t.tbh);
+  barChart.update();
+}
+
+function updateDonutChart(team, plan) {
+  if (!donutChart) return;
+  const k = getKPIs(team, plan);
+  donutChart.data.datasets[0].data = [k.inSeat, k.ans, k.inMarket, k.tbh];
+  donutChart.update();
+  renderDonutLegend(k);
+}
+
+// ═══════════════════════════════════════════
+// FILTER & TAB CONTROLS
+// ═══════════════════════════════════════════
+
+function applyFilter() {
+  currentTeam = document.getElementById('teamFilter').value;
+  renderAll();
+}
+
+function setPlanFilter(el, plan) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentPlan = plan;
+  renderAll();
+}
+
+function renderAll() {
+  renderKPIs();
+  renderANSTable();
+  renderInMarketTable();
+  renderTBHTable();
+  renderOverviewTable();
+  updateBarChart(currentTeam);
+  updateDonutChart(currentTeam, currentPlan);
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const tabs = ['ans','inmarket','tbh','overview'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  renderAll();
+});
+</script>
+</body>
+</html>
