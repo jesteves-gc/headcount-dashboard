@@ -71,12 +71,32 @@ body{font-family:'Schibsted Grotesk',sans-serif;background:#f9f2e9;color:#2a0039
 .header-badge{background:rgba(249,242,233,0.1);border:1px solid rgba(249,242,233,0.2);color:rgba(249,242,233,0.75);padding:6px 14px;border-radius:2px;font-size:11px;font-weight:500;letter-spacing:0.5px;font-family:'Schibsted Grotesk',sans-serif}
 .controls{background:#fff;border-bottom:1px solid #e8dfd0;padding:14px 32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(42,0,57,0.06)}
 .controls label{font-size:12px;font-weight:600;color:#86738c;white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px}
-.filter-select{border:1px solid #e8dfd0;border-radius:2px;padding:7px 12px;font-size:13px;font-family:'Schibsted Grotesk',sans-serif;color:#2a0039;background:#fff;cursor:pointer;min-width:200px}
-.filter-select:focus{outline:none;border-color:#2a0039}
 .filter-pills{display:flex;gap:6px;flex-wrap:wrap}
 .pill{padding:5px 12px;border-radius:2px;font-size:12px;font-weight:500;border:1px solid #e8dfd0;background:#fff;color:#86738c;cursor:pointer;transition:all 0.15s}
 .pill:hover{border-color:#2a0039;color:#2a0039}
 .pill.active{background:#2a0039;color:#f9f2e9;border-color:#2a0039}
+/* Multi-select dropdown */
+.ms-wrap{position:relative;display:inline-block}
+.ms-btn{display:flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid #e8dfd0;border-radius:2px;background:#fff;color:#2a0039;font-size:13px;font-family:'Schibsted Grotesk',sans-serif;cursor:pointer;min-width:200px;justify-content:space-between;transition:border-color 0.15s;white-space:nowrap}
+.ms-btn:hover,.ms-btn.open{border-color:#2a0039}
+.ms-btn .ms-chevron{font-size:10px;color:#86738c;transition:transform 0.2s;flex-shrink:0}
+.ms-btn.open .ms-chevron{transform:rotate(180deg)}
+.ms-btn .ms-label{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis}
+.ms-badge{background:#2a0039;color:#f9f2e9;border-radius:2px;font-size:10px;font-weight:700;padding:1px 6px;flex-shrink:0}
+.ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:220px;background:#fff;border:1px solid #e8dfd0;border-radius:2px;box-shadow:0 8px 24px rgba(42,0,57,0.12);z-index:200;max-height:300px;overflow-y:auto}
+.ms-panel.open{display:block}
+.ms-search{padding:8px 10px;border-bottom:1px solid #f0eaf5}
+.ms-search input{width:100%;border:1px solid #e8dfd0;border-radius:2px;padding:5px 8px;font-size:12px;font-family:'Schibsted Grotesk',sans-serif;color:#2a0039;outline:none}
+.ms-search input:focus{border-color:#2a0039}
+.ms-actions{display:flex;gap:0;border-bottom:1px solid #f0eaf5}
+.ms-action{flex:1;padding:6px;font-size:11px;font-weight:600;color:#86738c;background:none;border:none;cursor:pointer;font-family:'Schibsted Grotesk',sans-serif;text-transform:uppercase;letter-spacing:0.3px;transition:color 0.15s}
+.ms-action:hover{color:#2a0039}
+.ms-action+.ms-action{border-left:1px solid #f0eaf5}
+.ms-group-label{padding:8px 12px 4px;font-size:10px;font-weight:700;color:#86738c;text-transform:uppercase;letter-spacing:0.6px;background:#fdf8f4}
+.ms-option{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:background 0.1s}
+.ms-option:hover{background:#fdf8f4}
+.ms-option input[type=checkbox]{accent-color:#2a0039;width:14px;height:14px;flex-shrink:0;cursor:pointer}
+.ms-option label{font-size:13px;color:#2a0039;cursor:pointer;flex:1;font-family:'Schibsted Grotesk',sans-serif}
 .main{padding:24px 32px;max-width:1600px;margin:0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px}
 .kpi-card{background:#fff;border-radius:2px;padding:20px;border-left:4px solid;box-shadow:0 1px 3px rgba(42,0,57,0.07);transition:transform 0.15s}
@@ -193,32 +213,67 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 </div>
 
 <div class="controls">
-  <label>Filter by Team</label>
-  <select class="filter-select" id="teamFilter" onchange="applyFilter()">
-    <option value="All">All Teams</option>
-    <optgroup label="── Functional">
-      <option value="Administration">Administration</option>
-      <option value="Aviation">Aviation</option>
-      <option value="Company Infrastructure">Company Infrastructure</option>
-      <option value="Company Operations">Company Operations</option>
-      <option value="Finance">Finance</option>
-      <option value="GC Institute">GC Institute</option>
-      <option value="Human Resources">Human Resources</option>
-      <option value="Investor Relations">Investor Relations</option>
-      <option value="Legal & Compliance">Legal &amp; Compliance</option>
-      <option value="Management">Management</option>
-      <option value="Marketing & Communication">Marketing &amp; Communication</option>
-    </optgroup>
-    <optgroup label="── Other Segments">
-      <option value="EnergyCo">EnergyCo</option>
-      <option value="GC Capital">GC Capital</option>
-      <option value="HATCo">HATCo</option>
-      <option value="IMCo">IMCo</option>
-      <option value="Percepta">Percepta</option>
-    </optgroup>
-  </select>
+  <!-- Team multi-select -->
+  <label>Team</label>
+  <div class="ms-wrap" id="team-wrap">
+    <button class="ms-btn" id="team-btn" onclick="toggleDropdown('team')">
+      <span class="ms-label" id="team-label">All Teams</span>
+      <span class="ms-chevron">▼</span>
+    </button>
+    <div class="ms-panel" id="team-panel">
+      <div class="ms-search"><input type="text" placeholder="Search teams…" oninput="filterOptions('team',this.value)" id="team-search"></div>
+      <div class="ms-actions">
+        <button class="ms-action" onclick="selectAllOptions('team')">Select All</button>
+        <button class="ms-action" onclick="clearOptions('team')">Clear</button>
+      </div>
+      <div id="team-options">
+        <div class="ms-group-label">Functional</div>
+        <div class="ms-option"><input type="checkbox" id="t-admin" value="Administration" onchange="optionChanged('team')"><label for="t-admin">Administration</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-avia" value="Aviation" onchange="optionChanged('team')"><label for="t-avia">Aviation</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-ci" value="Company Infrastructure" onchange="optionChanged('team')"><label for="t-ci">Company Infrastructure</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-co" value="Company Operations" onchange="optionChanged('team')"><label for="t-co">Company Operations</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-fin" value="Finance" onchange="optionChanged('team')"><label for="t-fin">Finance</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-gci" value="GC Institute" onchange="optionChanged('team')"><label for="t-gci">GC Institute</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-hr" value="Human Resources" onchange="optionChanged('team')"><label for="t-hr">Human Resources</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-ir" value="Investor Relations" onchange="optionChanged('team')"><label for="t-ir">Investor Relations</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-lc" value="Legal &amp; Compliance" onchange="optionChanged('team')"><label for="t-lc">Legal &amp; Compliance</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-mgmt" value="Management" onchange="optionChanged('team')"><label for="t-mgmt">Management</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-mkt" value="Marketing &amp; Communication" onchange="optionChanged('team')"><label for="t-mkt">Marketing &amp; Communication</label></div>
+        <div class="ms-group-label">Other Segments</div>
+        <div class="ms-option"><input type="checkbox" id="t-ec" value="EnergyCo" onchange="optionChanged('team')"><label for="t-ec">EnergyCo</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-gcc" value="GC Capital" onchange="optionChanged('team')"><label for="t-gcc">GC Capital</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-hatco" value="HATCo" onchange="optionChanged('team')"><label for="t-hatco">HATCo</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-imco" value="IMCo" onchange="optionChanged('team')"><label for="t-imco">IMCo</label></div>
+        <div class="ms-option"><input type="checkbox" id="t-perc" value="Percepta" onchange="optionChanged('team')"><label for="t-perc">Percepta</label></div>
+      </div>
+    </div>
+  </div>
 
-  <label style="margin-left:12px">Plan Status</label>
+  <!-- Location multi-select -->
+  <label style="margin-left:8px">Location</label>
+  <div class="ms-wrap" id="loc-wrap">
+    <button class="ms-btn" id="loc-btn" onclick="toggleDropdown('loc')">
+      <span class="ms-label" id="loc-label">All Locations</span>
+      <span class="ms-chevron">▼</span>
+    </button>
+    <div class="ms-panel" id="loc-panel">
+      <div class="ms-actions">
+        <button class="ms-action" onclick="selectAllOptions('loc')">Select All</button>
+        <button class="ms-action" onclick="clearOptions('loc')">Clear</button>
+      </div>
+      <div id="loc-options">
+        <div class="ms-option"><input type="checkbox" id="l-ben" value="Bengaluru" onchange="optionChanged('loc')"><label for="l-ben">Bengaluru</label></div>
+        <div class="ms-option"><input type="checkbox" id="l-ber" value="Berlin" onchange="optionChanged('loc')"><label for="l-ber">Berlin</label></div>
+        <div class="ms-option"><input type="checkbox" id="l-lon" value="London" onchange="optionChanged('loc')"><label for="l-lon">London</label></div>
+        <div class="ms-option"><input type="checkbox" id="l-ny" value="New York" onchange="optionChanged('loc')"><label for="l-ny">New York</label></div>
+        <div class="ms-option"><input type="checkbox" id="l-sf" value="San Francisco" onchange="optionChanged('loc')"><label for="l-sf">San Francisco</label></div>
+        <div class="ms-option"><input type="checkbox" id="l-dc" value="Washington D.C." onchange="optionChanged('loc')"><label for="l-dc">Washington D.C.</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plan Status pills -->
+  <label style="margin-left:8px">Plan Status</label>
   <div class="filter-pills">
     <span class="pill active" data-plan="All" onclick="setPlanFilter(this,'All')">All</span>
     <span class="pill" data-plan="In plan" onclick="setPlanFilter(this,'In plan')">In Plan</span>
@@ -551,7 +606,8 @@ const tbhRoles = [
 // STATE
 // ═══════════════════════════════════════════
 
-let currentTeam = 'All';
+let currentTeams = new Set();     // empty = All Teams
+let currentLocations = new Set(); // empty = All Locations
 let currentPlan = 'All';
 let currentTab = 'ans';
 let barChart, donutChart;
@@ -560,14 +616,29 @@ let barChart, donutChart;
 // HELPERS
 // ═══════════════════════════════════════════
 
-function teamMatches(item, team) {
-  if (team === 'All') return true;
-  return item.team === team || item.division === team;
+function normalizeCity(city) {
+  if (!city) return '';
+  if (city.toLowerCase().includes('bangalore') || city.toLowerCase().includes('bengaluru')) return 'Bengaluru';
+  return city;
 }
 
-function planMatches(item, plan) {
-  if (plan === 'All') return true;
-  return item.type === plan || item.planStatus === plan;
+function teamMatches(item) {
+  if (currentTeams.size === 0) return true;
+  return currentTeams.has(item.team) || currentTeams.has(item.division);
+}
+
+function locationMatches(item) {
+  if (currentLocations.size === 0) return true;
+  return currentLocations.has(normalizeCity(item.city));
+}
+
+function planMatches(item) {
+  if (currentPlan === 'All') return true;
+  return item.type === currentPlan || item.planStatus === currentPlan;
+}
+
+function itemMatches(item) {
+  return teamMatches(item) && locationMatches(item) && planMatches(item);
 }
 
 function daysOut(dateStr) {
@@ -612,16 +683,17 @@ function daysOutBadge(days) {
 // KPI CALCULATION
 // ═══════════════════════════════════════════
 
-function getKPIs(team, plan) {
-  // Use teamStats for aggregate headcount numbers
-  const rows = team === 'All' ? teamStats : teamStats.filter(r => r.team === team);
+function getKPIs() {
+  // In Seat: from team stats aggregates (team filter only — no city-level in-seat data)
+  const rows = currentTeams.size === 0 ? teamStats
+    : teamStats.filter(r => currentTeams.has(r.team));
   const inSeat = rows.reduce((a,r) => a+r.inSeat, 0);
-  const inMarket = rows.reduce((a,r) => a+r.inMarket, 0);
-  const tbh = rows.reduce((a,r) => a+r.tbh, 0);
-  // ANS from actual roster (more accurate)
-  const ansCount = ansEmployees.filter(e => teamMatches(e, team) && planMatches(e, plan)).length;
-  const total = inSeat + ansCount + inMarket + tbh;
-  return { inSeat, ans: ansCount, inMarket, tbh, total };
+  // ANS, In Market, TBH: from individual records (support all filters)
+  const ansCount   = ansEmployees.filter(itemMatches).length;
+  const imCount    = inMarketRoles.filter(itemMatches).length;
+  const tbhCount   = tbhRoles.filter(itemMatches).length;
+  const total = inSeat + ansCount + imCount + tbhCount;
+  return { inSeat, ans: ansCount, inMarket: imCount, tbh: tbhCount, total };
 }
 
 // ═══════════════════════════════════════════
@@ -629,7 +701,7 @@ function getKPIs(team, plan) {
 // ═══════════════════════════════════════════
 
 function renderKPIs() {
-  const k = getKPIs(currentTeam, currentPlan);
+  const k = getKPIs();
   document.getElementById('kpi-inseat').textContent = k.inSeat;
   document.getElementById('kpi-ans').textContent = k.ans;
   document.getElementById('kpi-inmarket').textContent = k.inMarket;
@@ -637,21 +709,16 @@ function renderKPIs() {
   document.getElementById('kpi-total').textContent = k.total;
   const filled = k.total > 0 ? Math.round((k.inSeat + k.ans) / k.total * 100) : 0;
   document.getElementById('kpi-total-sub').textContent = `${filled}% filled · ${100-filled}% open`;
-
-  // Tab counts
-  const ansCount = ansEmployees.filter(e => teamMatches(e, currentTeam) && planMatches(e, currentPlan)).length;
-  const imCount  = inMarketRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan)).length;
-  const tbhCount = tbhRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan)).length;
-  document.getElementById('tab-ans-count').textContent = ansCount;
-  document.getElementById('tab-inmarket-count').textContent = imCount;
-  document.getElementById('tab-tbh-count').textContent = tbhCount;
-  document.getElementById('ans-count-badge').textContent = `${ansCount} people`;
-  document.getElementById('inmarket-count-badge').textContent = `${imCount} roles`;
-  document.getElementById('tbh-count-badge').textContent = `${tbhCount} roles`;
+  document.getElementById('tab-ans-count').textContent = k.ans;
+  document.getElementById('tab-inmarket-count').textContent = k.inMarket;
+  document.getElementById('tab-tbh-count').textContent = k.tbh;
+  document.getElementById('ans-count-badge').textContent = `${k.ans} people`;
+  document.getElementById('inmarket-count-badge').textContent = `${k.inMarket} roles`;
+  document.getElementById('tbh-count-badge').textContent = `${k.tbh} roles`;
 }
 
 function renderANSTable() {
-  const rows = ansEmployees.filter(e => teamMatches(e, currentTeam) && planMatches(e, currentPlan))
+  const rows = ansEmployees.filter(itemMatches)
     .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
   const tbody = document.getElementById('ans-table-body');
   if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
@@ -672,7 +739,7 @@ function renderANSTable() {
 }
 
 function renderInMarketTable() {
-  const rows = inMarketRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan))
+  const rows = inMarketRoles.filter(itemMatches)
     .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
   const tbody = document.getElementById('inmarket-table-body');
   if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
@@ -690,7 +757,7 @@ function renderInMarketTable() {
 }
 
 function renderTBHTable() {
-  const rows = tbhRoles.filter(r => teamMatches(r, currentTeam) && planMatches(r, currentPlan))
+  const rows = tbhRoles.filter(itemMatches)
     .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
   const tbody = document.getElementById('tbh-table-body');
   if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
@@ -708,7 +775,7 @@ function renderTBHTable() {
 }
 
 function renderOverviewTable() {
-  const rows = currentTeam === 'All' ? teamStats : teamStats.filter(r => r.team === currentTeam);
+  const rows = currentTeams.size === 0 ? teamStats : teamStats.filter(r => currentTeams.has(r.team));
   const tbody = document.getElementById('overview-table-body');
   tbody.innerHTML = rows.map(r => {
     const total = r.inSeat + r.ans + r.inMarket + r.tbh;
@@ -731,7 +798,8 @@ function renderOverviewTable() {
       </td>
     </tr>`;
   }).join('');
-  document.getElementById('overview-count-badge').textContent = currentTeam === 'All' ? 'All Teams' : currentTeam;
+  document.getElementById('overview-count-badge').textContent = currentTeams.size === 0 ? 'All Teams' : `${currentTeams.size} team${currentTeams.size>1?'s':''}`;
+
 }
 
 // ═══════════════════════════════════════════
@@ -765,7 +833,7 @@ function initCharts() {
 
   // Donut chart
   const donutCtx = document.getElementById('donutChart').getContext('2d');
-  const k = getKPIs('All','All');
+  const k = getKPIs();
   donutChart = new Chart(donutCtx, {
     type: 'doughnut',
     data: {
@@ -799,9 +867,9 @@ function renderDonutLegend(k) {
   ).join('');
 }
 
-function updateBarChart(team) {
+function updateBarChart() {
   if (!barChart) return;
-  const rows = team === 'All' ? teamStats : teamStats.filter(r => r.team === team);
+  const rows = currentTeams.size === 0 ? teamStats : teamStats.filter(r => currentTeams.has(r.team));
   barChart.data.labels = rows.map(t => t.team);
   barChart.data.datasets[0].data = rows.map(t=>t.inSeat);
   barChart.data.datasets[1].data = rows.map(t=>t.ans);
@@ -810,9 +878,9 @@ function updateBarChart(team) {
   barChart.update();
 }
 
-function updateDonutChart(team, plan) {
+function updateDonutChart() {
   if (!donutChart) return;
-  const k = getKPIs(team, plan);
+  const k = getKPIs();
   donutChart.data.datasets[0].data = [k.inSeat, k.ans, k.inMarket, k.tbh];
   donutChart.update();
   renderDonutLegend(k);
@@ -822,10 +890,86 @@ function updateDonutChart(team, plan) {
 // FILTER & TAB CONTROLS
 // ═══════════════════════════════════════════
 
-function applyFilter() {
-  currentTeam = document.getElementById('teamFilter').value;
+// ── Multi-select dropdown logic ──────────────────────────────
+const DROPDOWN_CONFIG = {
+  team: {
+    set: () => currentTeams,
+    label: (n) => n === 0 ? 'All Teams' : `${n} Team${n>1?'s':''}`,
+    btnId: 'team-btn', labelId: 'team-label', panelId: 'team-panel',
+  },
+  loc: {
+    set: () => currentLocations,
+    label: (n) => n === 0 ? 'All Locations' : `${n} Location${n>1?'s':''}`,
+    btnId: 'loc-btn', labelId: 'loc-label', panelId: 'loc-panel',
+  }
+};
+
+function toggleDropdown(key) {
+  const cfg = DROPDOWN_CONFIG[key];
+  const panel = document.getElementById(cfg.panelId);
+  const btn   = document.getElementById(cfg.btnId);
+  const isOpen = panel.classList.contains('open');
+  // Close all first
+  document.querySelectorAll('.ms-panel').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+  if (!isOpen) { panel.classList.add('open'); btn.classList.add('open'); }
+}
+
+function optionChanged(key) {
+  const cfg = DROPDOWN_CONFIG[key];
+  const checkboxes = document.querySelectorAll(`#${key}-options input[type=checkbox]`);
+  const selectedSet = key === 'team' ? currentTeams : currentLocations;
+  selectedSet.clear();
+  checkboxes.forEach(cb => { if (cb.checked) selectedSet.add(cb.value); });
+  const n = selectedSet.size;
+  document.getElementById(cfg.labelId).textContent = cfg.label(n);
+  const btn = document.getElementById(cfg.btnId);
+  const badge = btn.querySelector('.ms-badge');
+  if (n > 0) {
+    if (!badge) { const b = document.createElement('span'); b.className='ms-badge'; btn.insertBefore(b, btn.querySelector('.ms-chevron')); }
+    btn.querySelector('.ms-badge').textContent = n;
+  } else {
+    if (badge) badge.remove();
+  }
   renderAll();
 }
+
+function selectAllOptions(key) {
+  document.querySelectorAll(`#${key}-options input[type=checkbox]`).forEach(cb => { cb.checked = true; });
+  optionChanged(key);
+}
+
+function clearOptions(key) {
+  document.querySelectorAll(`#${key}-options input[type=checkbox]`).forEach(cb => { cb.checked = false; });
+  optionChanged(key);
+}
+
+function filterOptions(key, query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll(`#${key}-options .ms-option`).forEach(opt => {
+    const label = opt.querySelector('label').textContent.toLowerCase();
+    opt.style.display = label.includes(q) ? '' : 'none';
+  });
+  document.querySelectorAll(`#${key}-options .ms-group-label`).forEach(g => {
+    const siblings = [...g.nextElementSibling?.parentElement?.children || []];
+    // show group label if any visible options follow it
+    let anyVisible = false;
+    let el = g.nextElementSibling;
+    while (el && !el.classList.contains('ms-group-label')) {
+      if (el.style.display !== 'none') anyVisible = true;
+      el = el.nextElementSibling;
+    }
+    g.style.display = anyVisible ? '' : 'none';
+  });
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ms-wrap')) {
+    document.querySelectorAll('.ms-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('open'));
+  }
+});
 
 function setPlanFilter(el, plan) {
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
@@ -840,8 +984,8 @@ function renderAll() {
   renderInMarketTable();
   renderTBHTable();
   renderOverviewTable();
-  updateBarChart(currentTeam);
-  updateDonutChart(currentTeam, currentPlan);
+  updateBarChart();
+  updateDonutChart();
 }
 
 function switchTab(tab) {
