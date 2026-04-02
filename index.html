@@ -679,7 +679,9 @@ function daysOut(dateStr) {
 }
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr);
+  if (!dateStr) return '';
+  // Parse as local date (replace hyphens with slashes) to avoid UTC→local timezone shift
+  const d = new Date(dateStr.replace(/-/g, '/'));
   return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 
@@ -750,7 +752,7 @@ function renderKPIs() {
 
 function renderANSTable() {
   const rows = ansEmployees.filter(itemMatches)
-    .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
+    .sort((a,b) => (a.hireDate||'').localeCompare(b.hireDate||''));
   const tbody = document.getElementById('ans-table-body');
   if (!rows.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No results for this filter.</td></tr>`; return; }
   tbody.innerHTML = rows.map(e => {
