@@ -143,6 +143,7 @@ dept_seg  = {}                                        # dept → segment
 #   (those have hire_date_fcst_filter=TRUE & in_plan="Not in plan" & hire_month=cur_mon,
 #    e.g. Kinney, Genevieve hired 2026-04-01 — not yet in the headcount plan)
 dept_inseat = defaultdict(int)
+in_seat_employees = []
 for r in roster_rows:
     active  = (r.get("ee_card_active__current_month_I86B2I") or "").strip()
     status  = (r.get("ee_card_hc_status_current_month_HS12V0") or "").strip()
@@ -158,6 +159,10 @@ for r in roster_rows:
     # current-month hires from In Seat regardless of plan status
     if hire_mo == cur_mon:
         continue
+    city = (r.get("ee_card_location_current_month_43RZ7Q") or "").strip()
+    if city.lower() in ("bangalore", "bengaluru"): city = "Bengaluru"
+    name = fmt_name((r.get("employee_S1XCS2") or "").strip())
+    in_seat_employees.append(dict(name=name, dept=dept, city=city))
     dept_inseat[dept] += 1
 
 # Build name → actual title from Roster (used for ANS employee records)
@@ -305,6 +310,10 @@ for dept in sorted(all_depts):
         tbh      = dept_tbh.get(dept, 0),
     ))
 
+# Enrich in_seat_employees with division (dept_div is fully built by now)
+for e in in_seat_employees:
+    e['division'] = dept_div.get(e['dept'], dept_seg.get(e['dept'], 'Other'))
+
 # ── ansEmployees: already built from TBH Planning in the loop above ──────────
 # ans_employees_raw contains all unique ANS employees with full TBH enrichment.
 # Sort by hire date ascending.
@@ -379,6 +388,16 @@ for r in sorted(tbh_roles, key=lambda x: x.get("hireDate") or ""):
         f"planStatus:{js_str(r['type'])}, hireDate:{js_str(r['hireDate'])}, "
         f"hiringMgr:{js_str(r['hiringMgr'])}, city:{js_str(r['city'])}, "
         f"notes:{js_str(r['notes'])} }},"
+    )
+lines.append("];")
+lines.append("")
+
+# inSeatEmployees (individual records with city + division for location filtering)
+lines.append("const inSeatEmployees = [")
+for e in sorted(in_seat_employees, key=lambda x: x.get("name") or ""):
+    lines.append(
+        f"  {{ name:{js_str(e['name'])}, dept:{js_str(e['dept'])}, "
+        f"division:{js_str(e['division'])}, city:{js_str(e['city'])} }},"
     )
 lines.append("];")
 
