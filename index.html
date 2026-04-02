@@ -455,7 +455,7 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 // ═══════════════════════════════════════════
 
 const TODAY = new Date('2026-04-01');
-const DATA_REFRESHED = '2026-04-02T02:16:41Z';
+const DATA_REFRESHED = '2026-04-02T02:31:30Z';
 
 const teamStats = [
   { team:'Aviation', division:'Aviation', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
@@ -480,7 +480,7 @@ const teamStats = [
   { team:'Global Accounting Solutions', division:'Finance', segment:'Functional', inSeat:18, ans:0, inMarket:4, tbh:3 },
   { team:'Global Tax', division:'Finance', segment:'Functional', inSeat:4, ans:1, inMarket:0, tbh:0 },
   { team:'HATCo Operations', division:'HATCo Operations', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
-  { team:'HATCo Services', division:'HATCo Services', segment:'HATCo', inSeat:2, ans:1, inMarket:0, tbh:0 },
+  { team:'HATCo Services', division:'HATCo Services', segment:'HATCo', inSeat:2, ans:1, inMarket:1, tbh:0 },
   { team:'Healthcare', division:'Venture', segment:'Functional', inSeat:12, ans:0, inMarket:0, tbh:0 },
   { team:'Human Resources', division:'Human Resources', segment:'Functional', inSeat:15, ans:0, inMarket:2, tbh:1 },
   { team:'Information Technology', division:'Company Operations', segment:'Functional', inSeat:9, ans:0, inMarket:0, tbh:0 },
@@ -489,7 +489,7 @@ const teamStats = [
   { team:'Management', division:'Management', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
   { team:'Management Company & GP Services', division:'Finance', segment:'Functional', inSeat:0, ans:1, inMarket:0, tbh:0 },
   { team:'Office Services', division:'Company Operations', segment:'Functional', inSeat:8, ans:0, inMarket:0, tbh:1 },
-  { team:'Percepta', division:'Percepta', segment:'Percepta', inSeat:41, ans:13, inMarket:24, tbh:14 },
+  { team:'Percepta', division:'Percepta', segment:'Percepta', inSeat:41, ans:13, inMarket:25, tbh:14 },
   { team:'Platform', division:'Company Operations', segment:'Functional', inSeat:4, ans:0, inMarket:2, tbh:2 },
   { team:'Portfolio Planning & Analytics', division:'Finance', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:1 },
   { team:'Relationships', division:'Company Operations', segment:'Functional', inSeat:7, ans:0, inMarket:0, tbh:1 },
@@ -536,6 +536,7 @@ const inMarketRoles = [
   { id:'109', title:'Principal', division:'Creation', dept:'Creation', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Namburi, Madhu', city:'San Francisco', backfillFor:'' },
   { id:'111', title:'Analyst', division:'Creation', dept:'Creation', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Bhargava, Marc', city:'San Francisco', backfillFor:'' },
   { id:'84', title:'Accounting Manager, Transformations', division:'Finance', dept:'Global Accounting Solutions', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Jasinski, Michael', city:'New York', backfillFor:'' },
+  { id:'68', title:'Deployment Strategist', division:'Percepta', dept:'Percepta', status:'Offer Accepted', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'160', title:'Data Engineer', division:'Company Operations', dept:'Platform', status:'In Market', planStatus:'Backfill', hireDate:'2026-03-01', hiringMgr:'Moallemi, Bobak', city:'San Francisco', backfillFor:'Andrew Calder' },
   { id:'145', title:'FY26 Planning - VP/Director, People Operations', division:'Human Resources', dept:'Human Resources', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Sands, Anita', city:'San Francisco', backfillFor:'' },
   { id:'263', title:'Finance Manager, India', division:'Finance', dept:'Global Accounting Solutions', status:'In Market', planStatus:'Not in plan', hireDate:'2026-04-01', hiringMgr:'Prabakar, Ajoy', city:'Bengaluru', backfillFor:'' },
@@ -552,6 +553,7 @@ const inMarketRoles = [
   { id:'135', title:'FY26 Planning- Researcher', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'133', title:'FY26 Planning - Product Manager', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'195', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
+  { id:'177', title:'FY26 Planning - Engagement PM (Q2\'26)', division:'HATCo Services', dept:'HATCo Services', status:'Offer Accepted', planStatus:'In plan', hireDate:'2026-06-16', hiringMgr:'Tol, Daryl', city:'San Francisco', backfillFor:'' },
   { id:'199', title:'FY26 Planning - Product Manager', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-07-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'198', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-07-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'253', title:'Executive Assistant', division:'Administration', dept:'Executive Support', status:'In Market', planStatus:'Backfill', hireDate:'2026-07-01', hiringMgr:'Hollinshead, Matt', city:'Berlin', backfillFor:'Juana Murschitzke' },

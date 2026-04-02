@@ -243,12 +243,6 @@ for r in tbh_rows:
     if deprecated == "TRUE" or appr_status == "Deprecated":
         continue
 
-    # For Roles In Market: skip positions where offer has already been accepted
-    # (Pigment's board excludes these — they're functionally ANS, not open roles)
-    recr_status = (r.get("tbh_recruitment_status_text_0XDP9R") or "").strip()
-    if hc_type == "Roles In Market" and recr_status == "Offer Accepted":
-        continue
-
     # Normalize city (Bangalore / Bengaluru)
     city = (r.get("tbh_city_OH6H5T") or r.get("tbh_text_city_XLRCXO") or "").strip()
     if city.lower() in ("bangalore", "bengaluru"):
