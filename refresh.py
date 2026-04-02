@@ -156,6 +156,8 @@ for r in tbh_rows:
     active    = (r.get("tbh__active__YMOLOB")          or "").strip().upper()
     emp_name  = (r.get("tbh_position_employee_H8NO5P") or "").strip()
     emp_hc    = (r.get("tbh_position_employee_hc_status_BNTCXA") or "").strip()
+    hr_status = (r.get("tbh_hr_status_PWOWYR")         or "").strip()
+    tbhg_status=(r.get("tbhg_status_3NJS4Z")           or "").strip()
 
     if dept and seg:
         dept_seg[dept] = seg
@@ -181,6 +183,13 @@ for r in tbh_rows:
         continue
     # For Roles In Market: skip explicitly deactivated rows (active=FALSE) unless valid+inplan
     if hc_type == "Roles In Market" and active == "FALSE" and is_valid != "TRUE":
+        continue
+
+    # Skip stale positions: employee is already In-Seat or Terminated (Pigment pos_status not updated)
+    # Also skip if HR or TBH group status already shows Filled
+    if emp_hc in ("In-Seat", "Terminated"):
+        continue
+    if hr_status == "Filled" or tbhg_status == "Filled":
         continue
 
     # Normalize city (Bangalore / Bengaluru)
