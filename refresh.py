@@ -154,8 +154,9 @@ for r in roster_rows:
         continue
     if dept.startswith("z_"):          # unassigned dept (e.g. z_No Department)
         continue
-    # Exclude unplanned hires who started in the current month — not yet in the plan
-    if inplan == "Not in plan" and hire_mo == cur_mon:
+    # Exclude all hires who started in the current month — Pigment's board excludes
+    # current-month hires from In Seat regardless of plan status
+    if hire_mo == cur_mon:
         continue
     dept_inseat[dept] += 1
 
