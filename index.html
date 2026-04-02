@@ -347,8 +347,7 @@ tbody td:first-child{font-weight:500;color:#2a0039}
     <div class="tab active" onclick="switchTab('ans')">Accepted — Not Started <span id="tab-ans-count" style="margin-left:6px;background:#fef3c7;color:#b45309;padding:1px 7px;border-radius:2px;font-size:11px">23</span></div>
     <div class="tab" onclick="switchTab('inmarket')">Roles In Market <span id="tab-inmarket-count" style="margin-left:6px;background:#d1fae5;color:#047857;padding:1px 7px;border-radius:2px;font-size:11px">46</span></div>
     <div class="tab" onclick="switchTab('tbh')">Planned — Not In Market <span id="tab-tbh-count" style="margin-left:6px;background:#f0eaf5;color:#86738c;padding:1px 7px;border-radius:2px;font-size:11px">44</span></div>
-    <div class="tab" onclick="switchTab('overview')">Division Overview</div>
-    <div class="tab" onclick="switchTab('deptoverview')">Department Overview</div>
+    <div class="tab" onclick="switchTab('overview')">Headcount Overview</div>
   </div>
 
   <div id="panel-ans" class="tab-panel active">
@@ -428,13 +427,13 @@ tbody td:first-child{font-weight:500;color:#2a0039}
   <div id="panel-overview" class="tab-panel">
     <div class="table-card">
       <div class="table-header">
-        <h3>Headcount Summary by Division</h3>
+        <h3>Headcount Overview</h3>
         <span class="table-count" id="overview-count-badge">All Divisions</span>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Division</th>
+            <th>Division / Department</th>
             <th style="color:#2563eb">In Seat</th>
             <th style="color:#d97706">Accepted NS</th>
             <th style="color:#059669">In Market</th>
@@ -444,30 +443,6 @@ tbody td:first-child{font-weight:500;color:#2a0039}
           </tr>
         </thead>
         <tbody id="overview-table-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="panel-deptoverview" class="tab-panel">
-    <div class="table-card">
-      <div class="table-header">
-        <h3>Headcount Summary by Department</h3>
-        <span class="table-count" id="deptoverview-count-badge">All Departments</span>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Division</th>
-            <th>Department</th>
-            <th style="color:#2563eb">In Seat</th>
-            <th style="color:#d97706">Accepted NS</th>
-            <th style="color:#059669">In Market</th>
-            <th style="color:#7c3aed">Planned TBH</th>
-            <th>Total</th>
-            <th>Fill Rate</th>
-          </tr>
-        </thead>
-        <tbody id="deptoverview-table-body"></tbody>
       </table>
     </div>
   </div>
@@ -653,6 +628,7 @@ let currentLocations = new Set(); // empty = All Locations
 let currentPlan = 'All';
 let currentTab = 'ans';
 let barChart, donutChart;
+const expandedDivisions = new Set(); // divisions expanded in tree overview
 
 // ═══════════════════════════════════════════
 // HELPERS
@@ -855,71 +831,78 @@ function overviewTotalRow(rows, extraCols) {
   </tr>`;
 }
 
-function renderOverviewTable() {
-  // Always show division-level aggregates
-  const rows = getDivisionStats();
-  const filtered = currentDivisions.size === 0 ? rows : rows.filter(r => currentDivisions.has(r.division || ''));
-  document.getElementById('overview-count-badge').textContent = currentDivisions.size === 0 ? 'All Divisions' : `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
-
-  const dataRows = filtered.map(r => {
-    const total    = r.inSeat + r.ans + r.inMarket + r.tbh;
-    const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
-    return `<tr>
-      <td style="font-weight:500">${r.division}</td>
-      <td style="color:#2563eb;font-weight:600">${r.inSeat}</td>
-      <td style="color:#d97706;font-weight:600">${r.ans || '—'}</td>
-      <td style="color:#059669;font-weight:600">${r.inMarket || '—'}</td>
-      <td style="color:#7c3aed;font-weight:600">${r.tbh || '—'}</td>
-      <td style="font-weight:600">${total}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="progress-bar" style="width:80px">
-            <div class="progress-fill" style="width:${fillRate}%;background:${fillRate>=80?'#2a0039':fillRate>=60?'#d97706':'#ef4444'}"></div>
-          </div>
-          <span style="font-size:12px;color:#86738c">${fillRate}%</span>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('overview-table-body').innerHTML =
-    dataRows + overviewTotalRow(filtered, `<td style="font-weight:700;color:#2a0039">Total</td>`);
+function fillRateBar(fillRate) {
+  return `<div style="display:flex;align-items:center;gap:8px">
+    <div class="progress-bar" style="width:80px">
+      <div class="progress-fill" style="width:${fillRate}%;background:${fillRate>=80?'#2a0039':fillRate>=60?'#d97706':'#ef4444'}"></div>
+    </div>
+    <span style="font-size:12px;color:#86738c">${fillRate}%</span>
+  </div>`;
 }
 
-function renderDeptOverviewTable() {
-  // Department rows sorted by Division then Department, with optional division filter
-  const rows = teamStats
-    .filter(r => currentDivisions.size === 0 || currentDivisions.has(r.division || ''))
-    .slice()
-    .sort((a,b) => (a.division||'').localeCompare(b.division||'') || (a.team||'').localeCompare(b.team||''));
+function toggleDivision(div) {
+  if (expandedDivisions.has(div)) {
+    expandedDivisions.delete(div);
+  } else {
+    expandedDivisions.add(div);
+  }
+  renderOverviewTable();
+}
 
-  document.getElementById('deptoverview-count-badge').textContent =
-    currentDivisions.size === 0 ? 'All Departments' : `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
+function renderOverviewTable() {
+  const divStats = getDivisionStats();
+  const filtered = currentDivisions.size === 0 ? divStats : divStats.filter(r => currentDivisions.has(r.division || ''));
+  document.getElementById('overview-count-badge').textContent = currentDivisions.size === 0 ? 'All Divisions' : `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
 
-  const dataRows = rows.map(r => {
+  // Build dept lookup: division → sorted dept rows
+  const deptsByDiv = {};
+  teamStats.forEach(t => {
+    const div = t.division || 'Other';
+    if (!deptsByDiv[div]) deptsByDiv[div] = [];
+    deptsByDiv[div].push(t);
+  });
+  Object.values(deptsByDiv).forEach(arr => arr.sort((a,b) => (a.team||'').localeCompare(b.team||'')));
+
+  let html = '';
+  filtered.forEach(r => {
+    const isExpanded = expandedDivisions.has(r.division);
     const total    = r.inSeat + r.ans + r.inMarket + r.tbh;
     const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
-    return `<tr>
-      <td style="color:#64748b;font-size:13px">${r.division || '—'}</td>
-      <td style="font-weight:500">${r.team}</td>
+    const arrow    = isExpanded ? '▾' : '▸';
+
+    // Division row — clickable, bold
+    html += `<tr style="cursor:pointer;background:${isExpanded?'#f5f0f9':'#fff'}" onclick="toggleDivision(${JSON.stringify(r.division)})">
+      <td style="font-weight:600;color:#2a0039">
+        <span style="display:inline-block;width:18px;color:#86738c;font-size:11px">${arrow}</span>${r.division}
+      </td>
       <td style="color:#2563eb;font-weight:600">${r.inSeat}</td>
       <td style="color:#d97706;font-weight:600">${r.ans || '—'}</td>
       <td style="color:#059669;font-weight:600">${r.inMarket || '—'}</td>
       <td style="color:#7c3aed;font-weight:600">${r.tbh || '—'}</td>
       <td style="font-weight:600">${total}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="progress-bar" style="width:80px">
-            <div class="progress-fill" style="width:${fillRate}%;background:${fillRate>=80?'#2a0039':fillRate>=60?'#d97706':'#ef4444'}"></div>
-          </div>
-          <span style="font-size:12px;color:#86738c">${fillRate}%</span>
-        </div>
-      </td>
+      <td>${fillRateBar(fillRate)}</td>
     </tr>`;
-  }).join('');
 
-  document.getElementById('deptoverview-table-body').innerHTML =
-    dataRows + overviewTotalRow(rows, `<td style="font-weight:700;color:#2a0039" colspan="2">Total</td>`);
+    // Department child rows — only when expanded
+    if (isExpanded) {
+      (deptsByDiv[r.division] || []).forEach(d => {
+        const dt    = d.inSeat + d.ans + d.inMarket + d.tbh;
+        const dfill = dt > 0 ? Math.round((d.inSeat + d.ans) / dt * 100) : 100;
+        html += `<tr style="background:#faf7fc">
+          <td style="padding-left:32px;color:#4b3565;font-size:13px;font-weight:400">${d.team}</td>
+          <td style="color:#2563eb">${d.inSeat || '—'}</td>
+          <td style="color:#d97706">${d.ans || '—'}</td>
+          <td style="color:#059669">${d.inMarket || '—'}</td>
+          <td style="color:#7c3aed">${d.tbh || '—'}</td>
+          <td style="color:#2a0039">${dt}</td>
+          <td>${fillRateBar(dfill)}</td>
+        </tr>`;
+      });
+    }
+  });
+
+  document.getElementById('overview-table-body').innerHTML =
+    html + overviewTotalRow(filtered, `<td style="font-weight:700;color:#2a0039">Total</td>`);
 }
 
 // ═══════════════════════════════════════════
@@ -1119,7 +1102,6 @@ function renderAll() {
   renderInMarketTable();
   renderTBHTable();
   renderOverviewTable();
-  renderDeptOverviewTable();
   updateBarChart();
   updateDonutChart();
 }
@@ -1127,7 +1109,7 @@ function renderAll() {
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach((t,i) => {
-    const tabs = ['ans','inmarket','tbh','overview','deptoverview'];
+    const tabs = ['ans','inmarket','tbh','overview'];
     t.classList.toggle('active', tabs[i] === tab);
   });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
