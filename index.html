@@ -772,7 +772,7 @@ function renderANSTable() {
 
 function renderInMarketTable() {
   const rows = inMarketRoles.filter(itemMatches)
-    .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
+    .sort((a,b) => (a.division||'').localeCompare(b.division||'') || (a.dept||'').localeCompare(b.dept||''));
   const tbody = document.getElementById('inmarket-table-body');
   if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
   tbody.innerHTML = rows.map((r,i) => `<tr>
@@ -790,7 +790,7 @@ function renderInMarketTable() {
 
 function renderTBHTable() {
   const rows = tbhRoles.filter(itemMatches)
-    .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
+    .sort((a,b) => (a.division||'').localeCompare(b.division||'') || (a.dept||'').localeCompare(b.dept||''));
   const tbody = document.getElementById('tbh-table-body');
   if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
   tbody.innerHTML = rows.map(r => `<tr>
