@@ -428,14 +428,13 @@ tbody td:first-child{font-weight:500;color:#2a0039}
   <div id="panel-overview" class="tab-panel">
     <div class="table-card">
       <div class="table-header">
-        <h3>Team-by-Team Headcount Summary</h3>
-        <span class="table-count" id="overview-count-badge">All Teams</span>
+        <h3 id="overview-title">Headcount Summary by Division</h3>
+        <span class="table-count" id="overview-count-badge">All Divisions</span>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Team / Division</th>
-            <th>Segment</th>
+            <th id="overview-col1">Division</th>
             <th style="color:#2563eb">In Seat</th>
             <th style="color:#d97706">Accepted NS</th>
             <th style="color:#059669">In Market</th>
@@ -810,15 +809,34 @@ function renderTBHTable() {
 }
 
 function renderOverviewTable() {
-  const rows = currentDivisions.size === 0 ? teamStats
-    : teamStats.filter(r => currentDivisions.has(r.division || ''));
+  let rows, nameKey, title, colLabel, badge;
+
+  if (currentDivisions.size === 0) {
+    // Default: aggregate teamStats by division
+    rows     = getDivisionStats();
+    nameKey  = 'division';
+    title    = 'Headcount Summary by Division';
+    colLabel = 'Division';
+    badge    = 'All Divisions';
+  } else {
+    // Drill-down: show departments within selected divisions
+    rows     = teamStats.filter(r => currentDivisions.has(r.division || ''));
+    nameKey  = 'team';
+    title    = 'Headcount Summary by Department';
+    colLabel = 'Department';
+    badge    = `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
+  }
+
+  document.getElementById('overview-title').textContent    = title;
+  document.getElementById('overview-col1').textContent     = colLabel;
+  document.getElementById('overview-count-badge').textContent = badge;
+
   const tbody = document.getElementById('overview-table-body');
   tbody.innerHTML = rows.map(r => {
-    const total = r.inSeat + r.ans + r.inMarket + r.tbh;
+    const total    = r.inSeat + r.ans + r.inMarket + r.tbh;
     const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
     return `<tr>
-      <td>${r.team}</td>
-      <td><span class="badge badge-slate">${r.division || r.segment}</span></td>
+      <td style="font-weight:500">${r[nameKey]}</td>
       <td style="color:#2563eb;font-weight:600">${r.inSeat}</td>
       <td style="color:#d97706;font-weight:600">${r.ans || '—'}</td>
       <td style="color:#059669;font-weight:600">${r.inMarket || '—'}</td>
@@ -834,7 +852,6 @@ function renderOverviewTable() {
       </td>
     </tr>`;
   }).join('');
-  document.getElementById('overview-count-badge').textContent = currentDivisions.size === 0 ? 'All Departments' : `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
 }
 
 // ═══════════════════════════════════════════
