@@ -6,7 +6,7 @@ Run locally or via GitHub Actions (uses PIGMENT_EXPORT_TOKEN env var).
 """
 
 import os, sys, urllib.request, urllib.error, json, csv, io, re
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import defaultdict
 
 # ── Tokens ──────────────────────────────────────────────────────────────────
@@ -20,6 +20,8 @@ BASE = "https://pigment.app/api"
 BLOCK_HC_TOTAL    = "370a3e3e-af73-4a7c-be87-83249b7abd9c"   # TT_Stats_Headcount
 BLOCK_ANS         = "2f3e3431-63d7-4608-b27d-2ddb4b4180f4"   # EE_Stats_ANS
 BLOCK_TBH_PLAN    = "108e73c2-b9c4-4323-9118-ce4a3ad64899"   # [Tbl] TBH Planning
+BLOCK_EE_HC       = "42829695-83cf-484e-b474-b0444ba22859"   # EE_Stats_Headcount (employee-level)
+BLOCK_EE_DIV      = "1ebf2164-5cd9-4c7b-970c-a70295544fb4"   # EE_Data_Division
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 def export_csv(block_id, block_type="metric"):
@@ -84,7 +86,42 @@ ans_rows = export_csv(BLOCK_ANS, "metric")
 
 print("  → [Tbl] TBH Planning")
 tbh_rows = export_csv(BLOCK_TBH_PLAN, "table")
+
+print("  → EE_Stats_Headcount (for dept→division mapping)")
+ee_hc_rows = export_csv(BLOCK_EE_HC, "metric")
+
+print("  → EE_Data_Division (for dept→division mapping)")
+ee_div_rows = export_csv(BLOCK_EE_DIV, "metric")
+
 print(f"  ✓ Fetched {len(hc_rows)} HC rows, {len(ans_rows)} ANS rows, {len(tbh_rows)} TBH rows")
+
+# ── Build dept→division mapping from EE data (most complete source) ──────────
+emp_div_map = {}   # pigment_name → division
+for r in ee_div_rows:
+    if r.get("_month_GDBAK8") != cur_mon:
+        continue
+    name = (r.get("employee_S1XCS2") or "").strip()
+    div  = (r.get("ee_data_division_9K9VIT") or "").strip()
+    if name and div and not div.startswith("z_"):
+        emp_div_map[name] = div
+
+# dept → division: majority-vote from EE employees in that dept
+dept_div_votes = defaultdict(lambda: defaultdict(int))
+for r in ee_hc_rows:
+    if r.get("_month_GDBAK8") != cur_mon:
+        continue
+    name = (r.get("employee_S1XCS2") or "").strip()
+    dept = (r.get("departments_ITJAES") or "").strip()
+    div  = emp_div_map.get(name, "")
+    if dept and div:
+        dept_div_votes[dept][div] += 1
+
+dept_div = {}
+for dept, votes in dept_div_votes.items():
+    dept_div[dept] = max(votes, key=votes.get)
+
+# Also add mappings from TBH Planning (covers depts with no current employees)
+# (done later inside the TBH loop)
 
 # ── Build teamStats ───────────────────────────────────────────────────────────
 dept_hc   = defaultdict(lambda: defaultdict(float))  # dept → status → count
@@ -123,14 +160,27 @@ for r in tbh_rows:
     if dept and seg:
         dept_seg[dept] = seg
 
+    # Fill in division from TBH Planning if not already known from EE data
+    tbh_div = (r.get("tbh_division_HMK6KN") or "").strip()
+    if dept and tbh_div and dept not in dept_div:
+        dept_div[dept] = tbh_div
+
     # ANS enrichment lookup
     if emp_hc == "ANS" and emp_name:
         ans_emp_lookup[emp_name] = r
 
-    # Only active, unfilled TBH/In-Market roles for counts + tables
-    if active == "FALSE" or pos_status == "Filled":
+    # Skip filled positions
+    if pos_status == "Filled":
         continue
     if hc_type not in ("Roles In Market", "TBH"):
+        continue
+
+    # For planned TBH: only count valid+in-plan roles (is_valid=TRUE supersedes active flag)
+    is_valid = (r.get("tbh_isvalid_and_inplan__NBFM6C") or "").strip()
+    if hc_type == "TBH" and is_valid != "TRUE":
+        continue
+    # For Roles In Market: skip explicitly deactivated rows (active=FALSE) unless valid+inplan
+    if hc_type == "Roles In Market" and active == "FALSE" and is_valid != "TRUE":
         continue
 
     # Normalize city (Bangalore / Bengaluru)
@@ -172,6 +222,7 @@ for dept in sorted(all_depts):
     s = dept_hc.get(dept, {})
     team_stats.append(dict(
         team     = dept,
+        division = dept_div.get(dept, dept_seg.get(dept, "Other")),
         segment  = dept_seg.get(dept, "Functional"),
         inSeat   = int(s.get("In-Seat", 0)),
         ans      = int(s.get("ANS", 0)),
@@ -238,7 +289,7 @@ print(f"   In-Mkt roles:{len(in_market_roles)}")
 print(f"   TBH roles:   {len(tbh_roles)}")
 
 # ── Generate JavaScript data block ───────────────────────────────────────────
-refresh_dt = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+refresh_dt = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # UTC
 
 lines = []
 lines.append(f"const TODAY = new Date('{datetime.now().strftime('%Y-%m-%d')}');")
@@ -249,7 +300,7 @@ lines.append("")
 lines.append("const teamStats = [")
 for t in team_stats:
     lines.append(
-        f"  {{ team:{js_str(t['team'])}, segment:{js_str(t['segment'])}, "
+        f"  {{ team:{js_str(t['team'])}, division:{js_str(t['division'])}, segment:{js_str(t['segment'])}, "
         f"inSeat:{t['inSeat']}, ans:{t['ans']}, inMarket:{t['inMarket']}, tbh:{t['tbh']} }},"
     )
 lines.append("];")

@@ -37,9 +37,43 @@ async function submitPass() {
   }
 }
 
+function initFilters() {
+  // Division filter — built from unique divisions in teamStats
+  const divs = [...new Set(teamStats.map(t => t.division).filter(Boolean))].sort();
+  const divContainer = document.getElementById('team-options');
+  divContainer.innerHTML = divs.map((d, i) =>
+    `<div class="ms-option"><input type="checkbox" id="d-${i}" value="${d.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" onchange="optionChanged('team')"><label for="d-${i}">${d}</label></div>`
+  ).join('');
+
+  // Location filter — built from all cities across individual records
+  const cities = [...new Set([
+    ...ansEmployees.map(e => normalizeCity(e.city)),
+    ...inMarketRoles.map(r => normalizeCity(r.city)),
+    ...tbhRoles.map(r => normalizeCity(r.city)),
+  ].filter(Boolean))].sort();
+  const locContainer = document.getElementById('loc-options');
+  locContainer.innerHTML = cities.map((c, i) =>
+    `<div class="ms-option"><input type="checkbox" id="l-${i}" value="${c}" onchange="optionChanged('loc')"><label for="l-${i}">${c}</label></div>`
+  ).join('');
+}
+
+function updateTimestamp() {
+  // DATA_REFRESHED stored as UTC ISO (e.g. "2026-04-01T21:50:35Z")
+  // Display in Pacific Time with date + time
+  try {
+    const dt = new Date(DATA_REFRESHED);
+    const opts = { timeZone:'America/Los_Angeles', month:'numeric', day:'numeric',
+                   year:'numeric', hour:'numeric', minute:'2-digit', hour12:true };
+    const ptStr = dt.toLocaleString('en-US', opts);
+    document.getElementById('refresh-badge').textContent = `As of ${ptStr} PT`;
+  } catch(e) {
+    document.getElementById('refresh-badge').textContent = `As of ${DATA_REFRESHED}`;
+  }
+}
+
 function showDashboard() {
   document.getElementById('dashboard-root').style.display = 'block';
-  if (typeof initCharts === 'function') { initCharts(); renderAll(); }
+  if (typeof initCharts === 'function') { initFilters(); updateTimestamp(); initCharts(); renderAll(); }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -209,15 +243,15 @@ tbody td:first-child{font-weight:500;color:#2a0039}
       <p>Current Forecast · FY2026</p>
     </div>
   </div>
-  <div class="header-badge">As of March 31, 2026</div>
+  <div class="header-badge" id="refresh-badge">As of —</div>
 </div>
 
 <div class="controls">
   <!-- Team multi-select -->
-  <label>Team</label>
+  <label>Division</label>
   <div class="ms-wrap" id="team-wrap">
     <button class="ms-btn" id="team-btn" onclick="toggleDropdown('team')">
-      <span class="ms-label" id="team-label">All Teams</span>
+      <span class="ms-label" id="team-label">All Divisions</span>
       <span class="ms-chevron">▼</span>
     </button>
     <div class="ms-panel" id="team-panel">
@@ -226,26 +260,7 @@ tbody td:first-child{font-weight:500;color:#2a0039}
         <button class="ms-action" onclick="selectAllOptions('team')">Select All</button>
         <button class="ms-action" onclick="clearOptions('team')">Clear</button>
       </div>
-      <div id="team-options">
-        <div class="ms-group-label">Functional</div>
-        <div class="ms-option"><input type="checkbox" id="t-admin" value="Administration" onchange="optionChanged('team')"><label for="t-admin">Administration</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-avia" value="Aviation" onchange="optionChanged('team')"><label for="t-avia">Aviation</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-ci" value="Company Infrastructure" onchange="optionChanged('team')"><label for="t-ci">Company Infrastructure</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-co" value="Company Operations" onchange="optionChanged('team')"><label for="t-co">Company Operations</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-fin" value="Finance" onchange="optionChanged('team')"><label for="t-fin">Finance</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-gci" value="GC Institute" onchange="optionChanged('team')"><label for="t-gci">GC Institute</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-hr" value="Human Resources" onchange="optionChanged('team')"><label for="t-hr">Human Resources</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-ir" value="Investor Relations" onchange="optionChanged('team')"><label for="t-ir">Investor Relations</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-lc" value="Legal &amp; Compliance" onchange="optionChanged('team')"><label for="t-lc">Legal &amp; Compliance</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-mgmt" value="Management" onchange="optionChanged('team')"><label for="t-mgmt">Management</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-mkt" value="Marketing &amp; Communication" onchange="optionChanged('team')"><label for="t-mkt">Marketing &amp; Communication</label></div>
-        <div class="ms-group-label">Other Segments</div>
-        <div class="ms-option"><input type="checkbox" id="t-ec" value="EnergyCo" onchange="optionChanged('team')"><label for="t-ec">EnergyCo</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-gcc" value="GC Capital" onchange="optionChanged('team')"><label for="t-gcc">GC Capital</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-hatco" value="HATCo" onchange="optionChanged('team')"><label for="t-hatco">HATCo</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-imco" value="IMCo" onchange="optionChanged('team')"><label for="t-imco">IMCo</label></div>
-        <div class="ms-option"><input type="checkbox" id="t-perc" value="Percepta" onchange="optionChanged('team')"><label for="t-perc">Percepta</label></div>
-      </div>
+      <div id="team-options"><!-- populated by initFilters() --></div>
     </div>
   </div>
 
@@ -261,14 +276,7 @@ tbody td:first-child{font-weight:500;color:#2a0039}
         <button class="ms-action" onclick="selectAllOptions('loc')">Select All</button>
         <button class="ms-action" onclick="clearOptions('loc')">Clear</button>
       </div>
-      <div id="loc-options">
-        <div class="ms-option"><input type="checkbox" id="l-ben" value="Bengaluru" onchange="optionChanged('loc')"><label for="l-ben">Bengaluru</label></div>
-        <div class="ms-option"><input type="checkbox" id="l-ber" value="Berlin" onchange="optionChanged('loc')"><label for="l-ber">Berlin</label></div>
-        <div class="ms-option"><input type="checkbox" id="l-lon" value="London" onchange="optionChanged('loc')"><label for="l-lon">London</label></div>
-        <div class="ms-option"><input type="checkbox" id="l-ny" value="New York" onchange="optionChanged('loc')"><label for="l-ny">New York</label></div>
-        <div class="ms-option"><input type="checkbox" id="l-sf" value="San Francisco" onchange="optionChanged('loc')"><label for="l-sf">San Francisco</label></div>
-        <div class="ms-option"><input type="checkbox" id="l-dc" value="Washington D.C." onchange="optionChanged('loc')"><label for="l-dc">Washington D.C.</label></div>
-      </div>
+      <div id="loc-options"><!-- populated by initFilters() --></div>
     </div>
   </div>
 
@@ -319,8 +327,8 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 
   <div class="charts-grid">
     <div class="chart-card">
-      <h3>Headcount by Team</h3>
-      <p>Breakdown of all headcount statuses across teams</p>
+      <h3 id="bar-chart-title">Headcount by Division</h3>
+      <p id="bar-chart-sub">Breakdown of all headcount statuses by division · select a division to drill into departments</p>
       <div class="chart-wrap" style="height:320px">
         <canvas id="barChart"></canvas>
       </div>
@@ -448,50 +456,50 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 // ═══════════════════════════════════════════
 
 const TODAY = new Date('2026-04-01');
-const DATA_REFRESHED = '2026-04-01T14:50:35';
+const DATA_REFRESHED = '2026-04-02T01:13:06Z';
 
 const teamStats = [
-  { team:'AI TechCo', segment:'Percepta', inSeat:0, ans:0, inMarket:3, tbh:0 },
-  { team:'Aviation', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
-  { team:'Brand, Creative & Operations', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
-  { team:'CVF Finance', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:0 },
-  { team:'Car Service', segment:'Functional', inSeat:2, ans:0, inMarket:0, tbh:0 },
-  { team:'Communications', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:2 },
-  { team:'Company Infrastructure', segment:'Functional', inSeat:14, ans:0, inMarket:2, tbh:1 },
-  { team:'Compliance', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:1 },
-  { team:'Consumer / Fintech', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
-  { team:'Content & Events', segment:'Functional', inSeat:0, ans:0, inMarket:1, tbh:0 },
-  { team:'Creation', segment:'GC Capital', inSeat:6, ans:0, inMarket:3, tbh:0 },
-  { team:'Customer Value', segment:'GC Capital', inSeat:13, ans:0, inMarket:0, tbh:0 },
-  { team:'Defense, Energy & Industrials', segment:'GC Capital', inSeat:3, ans:0, inMarket:0, tbh:0 },
-  { team:'EnergyCo', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
-  { team:'Enterprise', segment:'GC Capital', inSeat:4, ans:0, inMarket:1, tbh:0 },
-  { team:'Equity Fund Finance', segment:'Functional', inSeat:18, ans:0, inMarket:1, tbh:1 },
-  { team:'Events & Experiential', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:2 },
-  { team:'Executive Support', segment:'Functional', inSeat:36, ans:1, inMarket:2, tbh:0 },
-  { team:'External Communication', segment:'Functional', inSeat:0, ans:0, inMarket:1, tbh:0 },
-  { team:'Founder Experience + Partnerships', segment:'Functional', inSeat:7, ans:0, inMarket:0, tbh:3 },
-  { team:'Fund-of-Funds', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:0 },
-  { team:'GC Institute', segment:'Functional', inSeat:8, ans:0, inMarket:0, tbh:4 },
-  { team:'Global Accounting Solutions', segment:'Functional', inSeat:18, ans:0, inMarket:4, tbh:3 },
-  { team:'Global Tax', segment:'Functional', inSeat:4, ans:1, inMarket:0, tbh:0 },
-  { team:'HATCo Operations', segment:'Functional', inSeat:4, ans:1, inMarket:0, tbh:0 },
-  { team:'HATCo Services', segment:'HATCo', inSeat:2, ans:0, inMarket:1, tbh:0 },
-  { team:'HatCo', segment:'HATCo', inSeat:0, ans:0, inMarket:1, tbh:0 },
-  { team:'Healthcare', segment:'Functional', inSeat:12, ans:0, inMarket:0, tbh:0 },
-  { team:'Human Resources', segment:'Functional', inSeat:15, ans:0, inMarket:2, tbh:1 },
-  { team:'Information Technology', segment:'Functional', inSeat:9, ans:0, inMarket:0, tbh:0 },
-  { team:'Investor Relations', segment:'Functional', inSeat:12, ans:0, inMarket:3, tbh:4 },
-  { team:'Legal Counsel', segment:'Functional', inSeat:10, ans:0, inMarket:0, tbh:5 },
-  { team:'Management', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
-  { team:'Office Services', segment:'Functional', inSeat:8, ans:0, inMarket:1, tbh:1 },
-  { team:'Percepta', segment:'Percepta', inSeat:41, ans:8, inMarket:25, tbh:13 },
-  { team:'Platform', segment:'Functional', inSeat:4, ans:0, inMarket:2, tbh:2 },
-  { team:'Portfolio Planning & Analytics', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:1 },
-  { team:'Relationships', segment:'Functional', inSeat:7, ans:0, inMarket:0, tbh:1 },
-  { team:'Seed', segment:'GC Capital', inSeat:18, ans:0, inMarket:2, tbh:0 },
-  { team:'Wealth Management Operations', segment:'IMCo', inSeat:25, ans:2, inMarket:1, tbh:0 },
-  { team:'Wealth Managers', segment:'IMCo', inSeat:17, ans:0, inMarket:0, tbh:0 },
+  { team:'AI TechCo', division:'Percepta', segment:'Percepta', inSeat:0, ans:0, inMarket:3, tbh:0 },
+  { team:'Aviation', division:'Aviation', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
+  { team:'Brand, Creative & Operations', division:'Marketing & Communication', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
+  { team:'CVF Finance', division:'Finance', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:0 },
+  { team:'Car Service', division:'Management', segment:'Functional', inSeat:2, ans:0, inMarket:0, tbh:0 },
+  { team:'Communications', division:'Marketing & Communication', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:1 },
+  { team:'Company Infrastructure', division:'Company Infrastructure', segment:'Functional', inSeat:14, ans:0, inMarket:2, tbh:0 },
+  { team:'Compliance', division:'Legal & Compliance', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:1 },
+  { team:'Consumer / Fintech', division:'Venture', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
+  { team:'Content & Events', division:'Marketing & Communication', segment:'Functional', inSeat:0, ans:0, inMarket:1, tbh:0 },
+  { team:'Creation', division:'Creation', segment:'GC Capital', inSeat:6, ans:0, inMarket:3, tbh:0 },
+  { team:'Customer Value', division:'Customer Value', segment:'GC Capital', inSeat:13, ans:0, inMarket:0, tbh:0 },
+  { team:'Defense, Energy & Industrials', division:'Venture', segment:'GC Capital', inSeat:3, ans:0, inMarket:0, tbh:0 },
+  { team:'EnergyCo', division:'EnergyCo', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
+  { team:'Enterprise', division:'Venture', segment:'GC Capital', inSeat:4, ans:0, inMarket:1, tbh:0 },
+  { team:'Equity Fund Finance', division:'Finance', segment:'Functional', inSeat:18, ans:0, inMarket:1, tbh:1 },
+  { team:'Events & Experiential', division:'Marketing & Communication', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:2 },
+  { team:'Executive Support', division:'Administration', segment:'Functional', inSeat:36, ans:1, inMarket:2, tbh:0 },
+  { team:'External Communication', division:'Marketing & Communication', segment:'Functional', inSeat:0, ans:0, inMarket:1, tbh:0 },
+  { team:'Founder Experience + Partnerships', division:'Company Operations', segment:'Functional', inSeat:7, ans:0, inMarket:0, tbh:3 },
+  { team:'Fund-of-Funds', division:'Venture', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:0 },
+  { team:'GC Institute', division:'GC Institute', segment:'Functional', inSeat:8, ans:0, inMarket:0, tbh:4 },
+  { team:'Global Accounting Solutions', division:'Finance', segment:'Functional', inSeat:18, ans:0, inMarket:4, tbh:3 },
+  { team:'Global Tax', division:'Finance', segment:'Functional', inSeat:4, ans:1, inMarket:0, tbh:0 },
+  { team:'HATCo Operations', division:'HATCo Operations', segment:'Functional', inSeat:4, ans:1, inMarket:0, tbh:0 },
+  { team:'HATCo Services', division:'HATCo Services', segment:'HATCo', inSeat:2, ans:0, inMarket:1, tbh:0 },
+  { team:'HatCo', division:'HATCo Services', segment:'HATCo', inSeat:0, ans:0, inMarket:1, tbh:0 },
+  { team:'Healthcare', division:'Venture', segment:'Functional', inSeat:12, ans:0, inMarket:0, tbh:0 },
+  { team:'Human Resources', division:'Human Resources', segment:'Functional', inSeat:15, ans:0, inMarket:2, tbh:1 },
+  { team:'Information Technology', division:'Company Operations', segment:'Functional', inSeat:9, ans:0, inMarket:0, tbh:0 },
+  { team:'Investor Relations', division:'Investor Relations', segment:'Functional', inSeat:12, ans:0, inMarket:3, tbh:3 },
+  { team:'Legal Counsel', division:'Legal & Compliance', segment:'Functional', inSeat:10, ans:0, inMarket:0, tbh:5 },
+  { team:'Management', division:'Management', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
+  { team:'Office Services', division:'Company Operations', segment:'Functional', inSeat:8, ans:0, inMarket:1, tbh:1 },
+  { team:'Percepta', division:'Percepta', segment:'Percepta', inSeat:41, ans:8, inMarket:25, tbh:14 },
+  { team:'Platform', division:'Company Operations', segment:'Functional', inSeat:4, ans:0, inMarket:2, tbh:2 },
+  { team:'Portfolio Planning & Analytics', division:'Finance', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:1 },
+  { team:'Relationships', division:'Company Operations', segment:'Functional', inSeat:7, ans:0, inMarket:0, tbh:1 },
+  { team:'Seed', division:'Venture', segment:'GC Capital', inSeat:18, ans:0, inMarket:2, tbh:0 },
+  { team:'Wealth Management Operations', division:'GC Wealth', segment:'IMCo', inSeat:25, ans:2, inMarket:1, tbh:0 },
+  { team:'Wealth Managers', division:'GC Wealth', segment:'IMCo', inSeat:17, ans:0, inMarket:0, tbh:0 },
 ];
 
 const ansEmployees = [
@@ -570,50 +578,12 @@ const inMarketRoles = [
 ];
 
 const tbhRoles = [
-  { id:'178', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'172', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'169', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'167', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'176', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'242', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'156', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'241', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'112', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'202', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'243', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'216', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'171', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'35', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'80', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'118', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'244', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'91', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'245', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'246', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'260', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'250', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'248', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'251', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'247', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'262', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'249', title:'', division:'', dept:'', planStatus:'In plan', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'256', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'261', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'264', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'266', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'267', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'269', title:'', division:'', dept:'', planStatus:'Blank', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'173', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'108', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'215', title:'', division:'', dept:'', planStatus:'Deprecated', hireDate:'', hiringMgr:'', city:'', notes:'' },
-  { id:'130', title:'FY26 Planning - Marketing Ops Coordinator', division:'Marketing & Communication', dept:'Communications', planStatus:'Deprecated', hireDate:'2026-02-01', hiringMgr:'Cohen, Russell', city:'New York', notes:'Jack on paternity leave in March; could hire contractor (convert to FTE)' },
-  { id:'25', title:'Researcher (CEO Office)', division:'Company Infrastructure', dept:'Company Infrastructure', planStatus:'Deprecated', hireDate:'2026-03-01', hiringMgr:'', city:'San Francisco', notes:'' },
   { id:'187', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'', city:'New York', notes:'' },
-  { id:'103', title:'IR Associate: CVF + coinvest', division:'Investor Relations', dept:'Investor Relations', planStatus:'Deprecated', hireDate:'2026-03-01', hiringMgr:'Doherty, Ryan', city:'New York', notes:'Rescoping role slightly to CVF + coinvest project management, likely an "associate" title and broadening SF requirement to NYC/Boston, to attract better candidates.' },
   { id:'212', title:'FY26 Planning - Manager, India Comms', division:'Marketing & Communication', dept:'Communications', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Gross Samuels, Arielle', city:'Bengaluru', notes:'Focus on Events but could scale x-Comms, Ops, etc' },
   { id:'157', title:'FY26 Planning - Partnerships', division:'Company Operations', dept:'Founder Experience + Partnerships', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Sabour, Maryam', city:'San Francisco', notes:'Split load / scale work of Maryam given increased number of strategic partners' },
   { id:'72', title:'FY26 Planning - Policy Partnerships Director', division:'GC Institute', dept:'GC Institute', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Carlson, Teresa', city:'Washington D.C.', notes:'Scale impact via 3rd party partners (like Brad at HATCo)' },
   { id:'153', title:'FY26 Planning - CVF Attorney', division:'Legal & Compliance', dept:'Legal Counsel', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'McCain, Christopher', city:'New York', notes:'' },
+  { id:'69', title:'Deployment Strategist', division:'Percepta', dept:'Percepta', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'', city:'New York', notes:'' },
   { id:'152', title:'FY26 Planning - Corporate Focused Attorney', division:'Legal & Compliance', dept:'Legal Counsel', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'McCain, Christopher', city:'New York', notes:'' },
   { id:'186', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'', city:'New York', notes:'' },
   { id:'190', title:'FY26 Planning - Event Specialist, SF', division:'Marketing & Communication', dept:'Events & Experiential', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Himel, Erin', city:'San Francisco', notes:'Urgent backup for Hayley' },
@@ -657,7 +627,7 @@ const tbhRoles = [
 // STATE
 // ═══════════════════════════════════════════
 
-let currentTeams = new Set();     // empty = All Teams
+let currentDivisions = new Set(); // empty = All Divisions
 let currentLocations = new Set(); // empty = All Locations
 let currentPlan = 'All';
 let currentTab = 'ans';
@@ -673,9 +643,9 @@ function normalizeCity(city) {
   return city;
 }
 
-function teamMatches(item) {
-  if (currentTeams.size === 0) return true;
-  return currentTeams.has(item.team) || currentTeams.has(item.division);
+function divisionMatches(item) {
+  if (currentDivisions.size === 0) return true;
+  return currentDivisions.has(item.division || item.div || '');
 }
 
 function locationMatches(item) {
@@ -689,7 +659,21 @@ function planMatches(item) {
 }
 
 function itemMatches(item) {
-  return teamMatches(item) && locationMatches(item) && planMatches(item);
+  return divisionMatches(item) && locationMatches(item) && planMatches(item);
+}
+
+// Division-level rollup of teamStats
+function getDivisionStats() {
+  const map = {};
+  teamStats.forEach(t => {
+    const div = t.division || 'Other';
+    if (!map[div]) map[div] = { division: div, inSeat:0, ans:0, inMarket:0, tbh:0 };
+    map[div].inSeat    += t.inSeat;
+    map[div].ans       += t.ans;
+    map[div].inMarket  += t.inMarket;
+    map[div].tbh       += t.tbh;
+  });
+  return Object.values(map).sort((a,b) => a.division.localeCompare(b.division));
 }
 
 function daysOut(dateStr) {
@@ -735,9 +719,9 @@ function daysOutBadge(days) {
 // ═══════════════════════════════════════════
 
 function getKPIs() {
-  // In Seat: from team stats aggregates (team filter only — no city-level in-seat data)
-  const rows = currentTeams.size === 0 ? teamStats
-    : teamStats.filter(r => currentTeams.has(r.team));
+  // In Seat: from teamStats aggregates filtered by division
+  const rows = currentDivisions.size === 0 ? teamStats
+    : teamStats.filter(r => currentDivisions.has(r.division || ''));
   const inSeat = rows.reduce((a,r) => a+r.inSeat, 0);
   // ANS, In Market, TBH: from individual records (support all filters)
   const ansCount   = ansEmployees.filter(itemMatches).length;
@@ -826,14 +810,15 @@ function renderTBHTable() {
 }
 
 function renderOverviewTable() {
-  const rows = currentTeams.size === 0 ? teamStats : teamStats.filter(r => currentTeams.has(r.team));
+  const rows = currentDivisions.size === 0 ? teamStats
+    : teamStats.filter(r => currentDivisions.has(r.division || ''));
   const tbody = document.getElementById('overview-table-body');
   tbody.innerHTML = rows.map(r => {
     const total = r.inSeat + r.ans + r.inMarket + r.tbh;
     const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
     return `<tr>
       <td>${r.team}</td>
-      <td><span class="badge badge-slate">${r.segment}</span></td>
+      <td><span class="badge badge-slate">${r.division || r.segment}</span></td>
       <td style="color:#2563eb;font-weight:600">${r.inSeat}</td>
       <td style="color:#d97706;font-weight:600">${r.ans || '—'}</td>
       <td style="color:#059669;font-weight:600">${r.inMarket || '—'}</td>
@@ -849,8 +834,7 @@ function renderOverviewTable() {
       </td>
     </tr>`;
   }).join('');
-  document.getElementById('overview-count-badge').textContent = currentTeams.size === 0 ? 'All Teams' : `${currentTeams.size} team${currentTeams.size>1?'s':''}`;
-
+  document.getElementById('overview-count-badge').textContent = currentDivisions.size === 0 ? 'All Departments' : `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
 }
 
 // ═══════════════════════════════════════════
@@ -858,18 +842,18 @@ function renderOverviewTable() {
 // ═══════════════════════════════════════════
 
 function initCharts() {
-  // Bar chart
+  // Bar chart — defaults to division-level view
   const barCtx = document.getElementById('barChart').getContext('2d');
-  const labels = teamStats.map(t => t.team.length > 18 ? t.team.replace(' & ', ' &\n') : t.team);
+  const divStats = getDivisionStats();
   barChart = new Chart(barCtx, {
     type: 'bar',
     data: {
-      labels: teamStats.map(t => t.team),
+      labels: divStats.map(d => d.division),
       datasets: [
-        { label: 'In Seat',    data: teamStats.map(t=>t.inSeat),   backgroundColor: '#2a0039', borderRadius: 2 },
-        { label: 'Accepted NS',data: teamStats.map(t=>t.ans),      backgroundColor: '#d97706', borderRadius: 2 },
-        { label: 'In Market',  data: teamStats.map(t=>t.inMarket), backgroundColor: '#059669', borderRadius: 2 },
-        { label: 'Planned TBH',data: teamStats.map(t=>t.tbh),      backgroundColor: '#86738c', borderRadius: 2 },
+        { label: 'In Seat',    data: divStats.map(d=>d.inSeat),   backgroundColor: '#2a0039', borderRadius: 2 },
+        { label: 'Accepted NS',data: divStats.map(d=>d.ans),      backgroundColor: '#d97706', borderRadius: 2 },
+        { label: 'In Market',  data: divStats.map(d=>d.inMarket), backgroundColor: '#059669', borderRadius: 2 },
+        { label: 'Planned TBH',data: divStats.map(d=>d.tbh),      backgroundColor: '#86738c', borderRadius: 2 },
       ]
     },
     options: {
@@ -920,12 +904,27 @@ function renderDonutLegend(k) {
 
 function updateBarChart() {
   if (!barChart) return;
-  const rows = currentTeams.size === 0 ? teamStats : teamStats.filter(r => currentTeams.has(r.team));
-  barChart.data.labels = rows.map(t => t.team);
-  barChart.data.datasets[0].data = rows.map(t=>t.inSeat);
-  barChart.data.datasets[1].data = rows.map(t=>t.ans);
-  barChart.data.datasets[2].data = rows.map(t=>t.inMarket);
-  barChart.data.datasets[3].data = rows.map(t=>t.tbh);
+  let rows, labelKey, title, sub;
+  if (currentDivisions.size === 0) {
+    // Default: division-level aggregation
+    rows     = getDivisionStats();
+    labelKey = 'division';
+    title    = 'Headcount by Division';
+    sub      = 'Breakdown of all headcount statuses by division · select a division to drill into departments';
+  } else {
+    // Drill-down: department breakdown within selected divisions
+    rows     = teamStats.filter(t => currentDivisions.has(t.division || ''));
+    labelKey = 'team';
+    title    = `Headcount by Department`;
+    sub      = `Showing departments within: ${[...currentDivisions].join(', ')}`;
+  }
+  document.getElementById('bar-chart-title').textContent = title;
+  document.getElementById('bar-chart-sub').textContent   = sub;
+  barChart.data.labels = rows.map(r => r[labelKey]);
+  barChart.data.datasets[0].data = rows.map(r=>r.inSeat);
+  barChart.data.datasets[1].data = rows.map(r=>r.ans);
+  barChart.data.datasets[2].data = rows.map(r=>r.inMarket);
+  barChart.data.datasets[3].data = rows.map(r=>r.tbh);
   barChart.update();
 }
 
@@ -944,8 +943,8 @@ function updateDonutChart() {
 // ── Multi-select dropdown logic ──────────────────────────────
 const DROPDOWN_CONFIG = {
   team: {
-    set: () => currentTeams,
-    label: (n) => n === 0 ? 'All Teams' : `${n} Team${n>1?'s':''}`,
+    set: () => currentDivisions,
+    label: (n) => n === 0 ? 'All Divisions' : `${n} Division${n>1?'s':''}`,
     btnId: 'team-btn', labelId: 'team-label', panelId: 'team-panel',
   },
   loc: {
@@ -969,7 +968,7 @@ function toggleDropdown(key) {
 function optionChanged(key) {
   const cfg = DROPDOWN_CONFIG[key];
   const checkboxes = document.querySelectorAll(`#${key}-options input[type=checkbox]`);
-  const selectedSet = key === 'team' ? currentTeams : currentLocations;
+  const selectedSet = key === 'team' ? currentDivisions : currentLocations;
   selectedSet.clear();
   checkboxes.forEach(cb => { if (cb.checked) selectedSet.add(cb.value); });
   const n = selectedSet.size;
