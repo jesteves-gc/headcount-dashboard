@@ -25,6 +25,12 @@ BLOCK_EE_DIV      = "1ebf2164-5cd9-4c7b-970c-a70295544fb4"   # EE_Data_Division
 BLOCK_ROSTER      = "5ac27c97-9f0b-42e2-80eb-7eb48e8d23de"   # [Tbl] Employee Roster Details
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
+def normalize_division(div):
+    """Collapse sub-branded division names to a single label (e.g. HATCo Operations → HATCo)."""
+    if div.lower().startswith("hatco"):
+        return "HATCo"
+    return div
+
 def export_csv(block_id, block_type="metric"):
     """Fetch a Pigment block as CSV rows (list of dicts)."""
     url = f"{BASE}/v1/export/{block_type}/{block_id}"
@@ -108,7 +114,7 @@ for r in ee_div_rows:
     name = (r.get("employee_S1XCS2") or "").strip()
     div  = (r.get("ee_data_division_9K9VIT") or "").strip()
     if name and div and not div.startswith("z_"):
-        emp_div_map[name] = div
+        emp_div_map[name] = normalize_division(div)
 
 # dept → division: majority-vote from EE employees in that dept
 dept_div_votes = defaultdict(lambda: defaultdict(int))
@@ -175,7 +181,7 @@ seen_ans_names  = set()
 
 for r in tbh_rows:
     dept      = (r.get("tbh_department_UOEVEH") or "").strip()
-    div       = (r.get("tbh_division_HMK6KN")   or "").strip()
+    div       = normalize_division((r.get("tbh_division_HMK6KN")   or "").strip())
     seg       = (r.get("tbh_segment_C56MGS")     or "Functional").strip()
     hc_type   = (r.get("tbh_hc_reporting_type_3JWELK") or "").strip()
     pos_status= (r.get("tbh_position_status_0ZF730")   or "").strip()
@@ -189,7 +195,7 @@ for r in tbh_rows:
         dept_seg[dept] = seg
 
     # Fill in division from TBH Planning if not already known from EE data
-    tbh_div = (r.get("tbh_division_HMK6KN") or "").strip()
+    tbh_div = normalize_division((r.get("tbh_division_HMK6KN") or "").strip())
     if dept and tbh_div and dept not in dept_div:
         dept_div[dept] = tbh_div
 

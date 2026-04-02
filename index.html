@@ -454,7 +454,7 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 // ═══════════════════════════════════════════
 
 const TODAY = new Date('2026-04-01');
-const DATA_REFRESHED = '2026-04-02T02:31:30Z';
+const DATA_REFRESHED = '2026-04-02T02:45:05Z';
 
 const teamStats = [
   { team:'Aviation', division:'Aviation', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
@@ -478,8 +478,8 @@ const teamStats = [
   { team:'GC Institute', division:'GC Institute', segment:'Functional', inSeat:8, ans:0, inMarket:0, tbh:4 },
   { team:'Global Accounting Solutions', division:'Finance', segment:'Functional', inSeat:18, ans:0, inMarket:4, tbh:3 },
   { team:'Global Tax', division:'Finance', segment:'Functional', inSeat:4, ans:1, inMarket:0, tbh:0 },
-  { team:'HATCo Operations', division:'HATCo Operations', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
-  { team:'HATCo Services', division:'HATCo Services', segment:'HATCo', inSeat:2, ans:1, inMarket:1, tbh:0 },
+  { team:'HATCo Operations', division:'HATCo', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
+  { team:'HATCo Services', division:'HATCo', segment:'HATCo', inSeat:2, ans:1, inMarket:1, tbh:0 },
   { team:'Healthcare', division:'Venture', segment:'Functional', inSeat:12, ans:0, inMarket:0, tbh:0 },
   { team:'Human Resources', division:'Human Resources', segment:'Functional', inSeat:15, ans:0, inMarket:2, tbh:1 },
   { team:'Information Technology', division:'Company Operations', segment:'Functional', inSeat:9, ans:0, inMarket:0, tbh:0 },
@@ -506,7 +506,7 @@ const ansEmployees = [
   { name:'Chang Yu Wu', title:'FY26 Planning - Engineer', division:'Percepta', team:'Percepta', hireDate:'2026-04-14', type:'In plan', city:'New York', country:'USA', backfillFor:'' },
   { name:'Anushka Gupta', title:'FY26 Planning - Engineer', division:'Percepta', team:'Percepta', hireDate:'2026-04-14', type:'In plan', city:'New York', country:'USA', backfillFor:'' },
   { name:'Dylan Brady', title:'FY26 Planning - Engineer', division:'Percepta', team:'Percepta', hireDate:'2026-04-14', type:'In plan', city:'New York', country:'USA', backfillFor:'' },
-  { name:'Jeremiah Radandt', title:'FY26 Planning - Finance Exec (60% Summa, 40% HATCo Services / GC)', division:'HATCo Services', team:'HATCo Services', hireDate:'2026-04-20', type:'In plan', city:'San Francisco', country:'USA', backfillFor:'' },
+  { name:'Jeremiah Radandt', title:'FY26 Planning - Finance Exec (60% Summa, 40% HATCo Services / GC)', division:'HATCo', team:'HATCo Services', hireDate:'2026-04-20', type:'In plan', city:'San Francisco', country:'USA', backfillFor:'' },
   { name:'Loren Curry', title:'FY26 Planning - Engineer', division:'Percepta', team:'Percepta', hireDate:'2026-04-21', type:'In plan', city:'New York', country:'USA', backfillFor:'' },
   { name:'Kali Hahn', title:'FY26 Planning - Tax Director', division:'Finance', team:'Global Tax', hireDate:'2026-04-21', type:'In plan', city:'New York', country:'USA', backfillFor:'' },
   { name:'Kyleb Bello', title:'FY26 Planning - Product Manager', division:'Percepta', team:'Percepta', hireDate:'2026-04-21', type:'In plan', city:'New York', country:'USA', backfillFor:'' },
@@ -552,7 +552,7 @@ const inMarketRoles = [
   { id:'135', title:'FY26 Planning- Researcher', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'133', title:'FY26 Planning - Product Manager', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'195', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
-  { id:'177', title:'FY26 Planning - Engagement PM (Q2\'26)', division:'HATCo Services', dept:'HATCo Services', status:'Offer Accepted', planStatus:'In plan', hireDate:'2026-06-16', hiringMgr:'Tol, Daryl', city:'San Francisco', backfillFor:'' },
+  { id:'177', title:'FY26 Planning - Engagement PM (Q2\'26)', division:'HATCo', dept:'HATCo Services', status:'Offer Accepted', planStatus:'In plan', hireDate:'2026-06-16', hiringMgr:'Tol, Daryl', city:'San Francisco', backfillFor:'' },
   { id:'199', title:'FY26 Planning - Product Manager', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-07-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'198', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-07-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'253', title:'Executive Assistant', division:'Administration', dept:'Executive Support', status:'In Market', planStatus:'Backfill', hireDate:'2026-07-01', hiringMgr:'Hollinshead, Matt', city:'Berlin', backfillFor:'Juana Murschitzke' },
