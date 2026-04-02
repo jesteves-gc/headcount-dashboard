@@ -159,6 +159,14 @@ for r in roster_rows:
         continue
     dept_inseat[dept] += 1
 
+# Build name → actual title from Roster (used for ANS employee records)
+roster_title_map = {}
+for r in roster_rows:
+    name  = (r.get("employee_S1XCS2") or "").strip()
+    title = (r.get("ee_card_title_current_month_AL0IHH") or "").strip()
+    if name and title:
+        roster_title_map[name] = title
+
 # TT_Stats_Headcount kept only for segment metadata
 for r in hc_rows:
     if r.get("_month_GDBAK8") != cur_mon:
@@ -211,7 +219,7 @@ for r in tbh_rows:
                 city = "Bengaluru"
             ans_employees_raw.append(dict(
                 name        = fmt_name(emp_name),
-                title       = (r.get("tbh_position_title_08ZQWH") or "").strip(),
+                title       = roster_title_map.get(emp_name) or (r.get("tbh2_final_candidate_title_HQUHBH") or "").strip() or (r.get("tbh_position_title_08ZQWH") or "").strip(),
                 division    = div or dept,
                 team        = dept,
                 hireDate    = (r.get("tbh_actual_hire_date_87ML4V") or r.get("tbh_hire_date_F35HTM") or "").strip(),
