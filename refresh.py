@@ -22,6 +22,7 @@ BLOCK_ANS         = "2f3e3431-63d7-4608-b27d-2ddb4b4180f4"   # EE_Stats_ANS
 BLOCK_TBH_PLAN    = "108e73c2-b9c4-4323-9118-ce4a3ad64899"   # [Tbl] TBH Planning
 BLOCK_EE_HC       = "42829695-83cf-484e-b474-b0444ba22859"   # EE_Stats_Headcount (employee-level)
 BLOCK_EE_DIV      = "1ebf2164-5cd9-4c7b-970c-a70295544fb4"   # EE_Data_Division
+BLOCK_ROSTER      = "5ac27c97-9f0b-42e2-80eb-7eb48e8d23de"   # [Tbl] Employee Roster Details
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 def export_csv(block_id, block_type="metric"):
@@ -93,7 +94,11 @@ ee_hc_rows = export_csv(BLOCK_EE_HC, "metric")
 print("  → EE_Data_Division (for dept→division mapping)")
 ee_div_rows = export_csv(BLOCK_EE_DIV, "metric")
 
-print(f"  ✓ Fetched {len(hc_rows)} HC rows, {len(ans_rows)} ANS rows, {len(tbh_rows)} TBH rows")
+print("  → [Tbl] Employee Roster Details (for In-Seat count)")
+roster_rows = export_csv(BLOCK_ROSTER, "table")
+
+print(f"  ✓ Fetched {len(hc_rows)} HC rows, {len(ans_rows)} ANS rows, "
+      f"{len(tbh_rows)} TBH rows, {len(roster_rows)} roster rows")
 
 # ── Build dept→division mapping from EE data (most complete source) ──────────
 emp_div_map = {}   # pigment_name → division
@@ -124,18 +129,39 @@ for dept, votes in dept_div_votes.items():
 # (done later inside the TBH loop)
 
 # ── Build teamStats ───────────────────────────────────────────────────────────
-dept_hc   = defaultdict(lambda: defaultdict(float))  # dept → status → count
+dept_hc   = defaultdict(lambda: defaultdict(float))  # dept → status → count (kept for segment only)
 dept_seg  = {}                                        # dept → segment
 
-# In-Seat + ANS from TT_Stats_Headcount (current month only)
+# Build In-Seat from Employee Roster Details — matches Pigment board's exact filter:
+#   active=TRUE, non-z_ dept, exclude unplanned hires who started THIS month
+#   (those have hire_date_fcst_filter=TRUE & in_plan="Not in plan" & hire_month=cur_mon,
+#    e.g. Kinney, Genevieve hired 2026-04-01 — not yet in the headcount plan)
+dept_inseat = defaultdict(int)
+for r in roster_rows:
+    active  = (r.get("ee_card_active__current_month_I86B2I") or "").strip()
+    status  = (r.get("ee_card_hc_status_current_month_HS12V0") or "").strip()
+    dept    = (r.get("ee_card_department_current_month_NH1GGR") or "").strip()
+    inplan  = (r.get("ee_text_in_plan_current_month_SMAXK2") or "").strip()
+    hire_mo = (r.get("ee_card_hire_month_current_month_JM58I2") or "").strip()
+
+    if status != "In-Seat" or active != "TRUE":
+        continue
+    if dept.startswith("z_"):          # unassigned dept (e.g. z_No Department)
+        continue
+    # Exclude unplanned hires who started in the current month — not yet in the plan
+    if inplan == "Not in plan" and hire_mo == cur_mon:
+        continue
+    dept_inseat[dept] += 1
+
+# TT_Stats_Headcount kept only for segment metadata
 for r in hc_rows:
     if r.get("_month_GDBAK8") != cur_mon:
         continue
     dept   = r.get("departments_ITJAES", "").strip()
     status = r.get("hc_status_GVAXIK", "").strip()
     val    = float(r.get("tt_stats_headcount_A6LQWZ") or 0)
-    if dept:
-        dept_hc[dept][status] += val
+    if dept and val:
+        dept_hc[dept][status] += val  # used only for dept_seg lookup below
 
 # In-Market + TBH + ANS counts from TBH Planning (single source of truth)
 dept_im  = defaultdict(int)
@@ -244,9 +270,9 @@ for r in tbh_rows:
         dept_tbh[dept] += 1
         tbh_roles.append(role)
 
-# Combine all departments (include ANS-only depts that may not appear in HC block)
+# Combine all departments
 all_depts = (
-    set(dept_hc.keys()) |
+    set(dept_inseat.keys()) |
     set(dept_im.keys()) |
     set(dept_tbh.keys()) |
     set(dept_ans.keys())
@@ -254,13 +280,12 @@ all_depts = (
 
 team_stats = []
 for dept in sorted(all_depts):
-    s = dept_hc.get(dept, {})
     team_stats.append(dict(
         team     = dept,
         division = dept_div.get(dept, dept_seg.get(dept, "Other")),
         segment  = dept_seg.get(dept, "Functional"),
-        inSeat   = int(s.get("In-Seat", 0)),
-        ans      = dept_ans.get(dept, 0),   # from TBH Planning (source of truth)
+        inSeat   = dept_inseat.get(dept, 0),   # from Roster (matches Pigment board)
+        ans      = dept_ans.get(dept, 0),       # from TBH Planning (source of truth)
         inMarket = dept_im.get(dept, 0),
         tbh      = dept_tbh.get(dept, 0),
     ))
