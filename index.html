@@ -871,7 +871,7 @@ function renderOverviewTable() {
     const arrow    = isExpanded ? '▾' : '▸';
 
     // Division row — clickable, bold
-    html += `<tr style="cursor:pointer;background:${isExpanded?'#f5f0f9':'#fff'}" onclick="toggleDivision(${JSON.stringify(r.division)})">
+    html += `<tr style="cursor:pointer;background:${isExpanded?'#f5f0f9':'#fff'}" onclick="toggleDivision('${r.division.replace(/'/g, "\\'")}')">
       <td style="font-weight:600;color:#2a0039">
         <span style="display:inline-block;width:18px;color:#86738c;font-size:11px">${arrow}</span>${r.division}
       </td>
