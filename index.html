@@ -830,7 +830,8 @@ function renderOverviewTable() {
   document.getElementById('overview-count-badge').textContent = badge;
 
   const tbody = document.getElementById('overview-table-body');
-  tbody.innerHTML = rows.map(r => {
+
+  const dataRows = rows.map(r => {
     const total    = r.inSeat + r.ans + r.inMarket + r.tbh;
     const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
     return `<tr>
@@ -850,6 +851,32 @@ function renderOverviewTable() {
       </td>
     </tr>`;
   }).join('');
+
+  // Total row
+  const tInSeat   = rows.reduce((s,r) => s + r.inSeat,    0);
+  const tAns      = rows.reduce((s,r) => s + r.ans,       0);
+  const tInMarket = rows.reduce((s,r) => s + r.inMarket,  0);
+  const tTbh      = rows.reduce((s,r) => s + r.tbh,       0);
+  const tTotal    = tInSeat + tAns + tInMarket + tTbh;
+  const tFill     = tTotal > 0 ? Math.round((tInSeat + tAns) / tTotal * 100) : 100;
+  const totalRow  = `<tr style="border-top:2px solid #e2d8e8;background:#faf8fb">
+    <td style="font-weight:700;color:#2a0039">Total</td>
+    <td style="color:#2563eb;font-weight:700">${tInSeat}</td>
+    <td style="color:#d97706;font-weight:700">${tAns}</td>
+    <td style="color:#059669;font-weight:700">${tInMarket}</td>
+    <td style="color:#7c3aed;font-weight:700">${tTbh}</td>
+    <td style="font-weight:700;color:#2a0039">${tTotal}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="progress-bar" style="width:80px">
+          <div class="progress-fill" style="width:${tFill}%;background:${tFill>=80?'#2a0039':tFill>=60?'#d97706':'#ef4444'}"></div>
+        </div>
+        <span style="font-size:12px;color:#86738c">${tFill}%</span>
+      </div>
+    </td>
+  </tr>`;
+
+  tbody.innerHTML = dataRows + totalRow;
 }
 
 // ═══════════════════════════════════════════
