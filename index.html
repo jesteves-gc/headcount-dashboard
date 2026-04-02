@@ -455,7 +455,7 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 // ═══════════════════════════════════════════
 
 const TODAY = new Date('2026-04-01');
-const DATA_REFRESHED = '2026-04-02T02:09:59Z';
+const DATA_REFRESHED = '2026-04-02T02:16:41Z';
 
 const teamStats = [
   { team:'Aviation', division:'Aviation', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
@@ -488,12 +488,12 @@ const teamStats = [
   { team:'Legal Counsel', division:'Legal & Compliance', segment:'Functional', inSeat:10, ans:1, inMarket:0, tbh:5 },
   { team:'Management', division:'Management', segment:'Functional', inSeat:4, ans:0, inMarket:0, tbh:0 },
   { team:'Management Company & GP Services', division:'Finance', segment:'Functional', inSeat:0, ans:1, inMarket:0, tbh:0 },
-  { team:'Office Services', division:'Company Operations', segment:'Functional', inSeat:8, ans:0, inMarket:1, tbh:1 },
+  { team:'Office Services', division:'Company Operations', segment:'Functional', inSeat:8, ans:0, inMarket:0, tbh:1 },
   { team:'Percepta', division:'Percepta', segment:'Percepta', inSeat:41, ans:13, inMarket:24, tbh:14 },
   { team:'Platform', division:'Company Operations', segment:'Functional', inSeat:4, ans:0, inMarket:2, tbh:2 },
   { team:'Portfolio Planning & Analytics', division:'Finance', segment:'Functional', inSeat:3, ans:0, inMarket:0, tbh:1 },
   { team:'Relationships', division:'Company Operations', segment:'Functional', inSeat:7, ans:0, inMarket:0, tbh:1 },
-  { team:'Seed', division:'Venture', segment:'GC Capital', inSeat:18, ans:0, inMarket:1, tbh:0 },
+  { team:'Seed', division:'Venture', segment:'GC Capital', inSeat:18, ans:0, inMarket:0, tbh:0 },
   { team:'Wealth Management Operations', division:'GC Wealth', segment:'IMCo', inSeat:25, ans:2, inMarket:1, tbh:0 },
   { team:'Wealth Managers', division:'GC Wealth', segment:'IMCo', inSeat:17, ans:0, inMarket:0, tbh:0 },
 ];
@@ -533,7 +533,6 @@ const inMarketRoles = [
   { id:'144', title:'FY26 Planning - VP, GC Capital Support', division:'Human Resources', dept:'Human Resources', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Sands, Anita', city:'San Francisco', backfillFor:'' },
   { id:'46', title:'Head of Ops', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'150', title:'FY26 Planning - Associate, US Sales / Distribution', division:'Investor Relations', dept:'Investor Relations', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Mainthia, Amrita', city:'San Francisco', backfillFor:'' },
-  { id:'106', title:'Director, Real Estate', division:'Company Operations', dept:'Office Services', status:'In Market', planStatus:'Deprecated', hireDate:'2026-03-01', hiringMgr:'Rehagen, Jon', city:'New York', backfillFor:'' },
   { id:'109', title:'Principal', division:'Creation', dept:'Creation', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Namburi, Madhu', city:'San Francisco', backfillFor:'' },
   { id:'111', title:'Analyst', division:'Creation', dept:'Creation', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Bhargava, Marc', city:'San Francisco', backfillFor:'' },
   { id:'84', title:'Accounting Manager, Transformations', division:'Finance', dept:'Global Accounting Solutions', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Jasinski, Michael', city:'New York', backfillFor:'' },
@@ -552,7 +551,6 @@ const inMarketRoles = [
   { id:'196', title:'FY26 Planning - Product Manager', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'135', title:'FY26 Planning- Researcher', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'133', title:'FY26 Planning - Product Manager', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
-  { id:'100', title:'Principal, US Seed', division:'Venture', dept:'Seed', status:'In Market', planStatus:'Deprecated', hireDate:'2026-06-01', hiringMgr:'Sagalov, Yuri', city:'San Francisco', backfillFor:'Shuyu Wang' },
   { id:'195', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-06-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'199', title:'FY26 Planning - Product Manager', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-07-01', hiringMgr:'', city:'New York', backfillFor:'' },
   { id:'198', title:'FY26 Planning - Engineer', division:'Percepta', dept:'Percepta', status:'In Market', planStatus:'In plan', hireDate:'2026-07-01', hiringMgr:'', city:'New York', backfillFor:'' },

@@ -237,6 +237,12 @@ for r in tbh_rows:
     if hr_status == "Filled" or tbhg_status == "Filled":
         continue
 
+    # Skip deprecated roles — these are cancelled/superseded positions
+    deprecated = (r.get("tbh2_deprecated__V2ZOJ0") or "").strip()
+    appr_status = (r.get("tbh_approval_status_20UO98") or "").strip()
+    if deprecated == "TRUE" or appr_status == "Deprecated":
+        continue
+
     # For Roles In Market: skip positions where offer has already been accepted
     # (Pigment's board excludes these — they're functionally ANS, not open roles)
     recr_status = (r.get("tbh_recruitment_status_text_0XDP9R") or "").strip()
