@@ -214,7 +214,7 @@ for r in tbh_rows:
                 title       = (r.get("tbh_position_title_08ZQWH") or "").strip(),
                 division    = div or dept,
                 team        = dept,
-                hireDate    = (r.get("tbh_actual_hire_date_87ML4V") or r.get("tbh_hire_date_F35HTM") or "").strip(),
+                hireDate    = (r.get("tbh_hire_date_F35HTM") or r.get("tbh_actual_hire_date_87ML4V") or "").strip(),
                 type        = (r.get("tbh_approval_status_20UO98") or "In plan").strip(),
                 city        = city,
                 country     = (r.get("tbh_country_QW1BMZ") or r.get("tbh_text_country_W6HD13") or "").strip(),
