@@ -1323,6 +1323,17 @@ function initCharts() {
       scales: {
         x: { stacked: true, ticks: { font:{family:'Inter',size:10}, maxRotation:45 }, grid:{display:false} },
         y: { stacked: true, ticks: { font:{family:'Inter',size:11} }, grid:{color:'#f1f5f9'} }
+      },
+      onClick(evt, elements) {
+        if (!elements.length) return;
+        const types = ['inSeat','ans','inMarket','tbh'];
+        const type = types[elements[0].datasetIndex];
+        const label = barChart.data.labels[elements[0].index];
+        const scopeKey = currentDivisions.size === 0 ? 'division' : 'dept';
+        if (type && label) openDrawer(type, scopeKey, label);
+      },
+      onHover(evt, elements) {
+        evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
       }
     }
   });
@@ -1338,7 +1349,16 @@ function initCharts() {
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '70%',
-      plugins: { legend: { display:false } }
+      plugins: { legend: { display:false } },
+      onClick(evt, elements) {
+        if (!elements.length) return;
+        const types = ['inSeat','ans','inMarket','tbh'];
+        const type = types[elements[0].index];
+        if (type) openDrawer(type, null, null);
+      },
+      onHover(evt, elements) {
+        evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+      }
     }
   });
 
@@ -1553,18 +1573,22 @@ function closeDrawer() {
 }
 
 function openDrawer(type, scopeKey, scopeVal) {
+  // scopeKey/scopeVal are optional — omit both to show all records matching active filters
+  const scopeFilter = scopeKey
+    ? (item, divField, deptField) => (scopeKey === 'division' ? item[divField] : item[deptField]) === scopeVal
+    : () => true;
   let records = [];
   if (type === 'inSeat') {
-    records = inSeatEmployees.filter(e => itemMatches(e) && e[scopeKey] === scopeVal);
+    records = inSeatEmployees.filter(e => itemMatches(e) && scopeFilter(e, 'division', 'dept'));
   } else if (type === 'ans') {
-    records = ansEmployees.filter(e => itemMatches(e) && (scopeKey === 'division' ? e.division : e.team) === scopeVal);
+    records = ansEmployees.filter(e => itemMatches(e) && scopeFilter(e, 'division', 'team'));
   } else if (type === 'inMarket') {
-    records = inMarketRoles.filter(r => itemMatches(r) && (scopeKey === 'division' ? r.division : r.dept) === scopeVal);
+    records = inMarketRoles.filter(r => itemMatches(r) && scopeFilter(r, 'division', 'dept'));
   } else if (type === 'tbh') {
-    records = tbhRoles.filter(r => itemMatches(r) && (scopeKey === 'division' ? r.division : r.dept) === scopeVal);
+    records = tbhRoles.filter(r => itemMatches(r) && scopeFilter(r, 'division', 'dept'));
   }
   const typeLabels = { inSeat:'In Seat', ans:'Accepted Not Started', inMarket:'Roles In Market', tbh:'Planned TBH' };
-  document.getElementById('drawer-title').textContent = `${typeLabels[type]} — ${scopeVal}`;
+  document.getElementById('drawer-title').textContent = scopeVal ? `${typeLabels[type]} — ${scopeVal}` : typeLabels[type];
   document.getElementById('drawer-sub').textContent = `${records.length} record${records.length !== 1 ? 's' : ''}`;
   document.getElementById('drawer-body').innerHTML = records.length
     ? drawerTable(type, records)
