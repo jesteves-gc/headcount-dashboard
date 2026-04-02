@@ -347,7 +347,8 @@ tbody td:first-child{font-weight:500;color:#2a0039}
     <div class="tab active" onclick="switchTab('ans')">Accepted — Not Started <span id="tab-ans-count" style="margin-left:6px;background:#fef3c7;color:#b45309;padding:1px 7px;border-radius:2px;font-size:11px">23</span></div>
     <div class="tab" onclick="switchTab('inmarket')">Roles In Market <span id="tab-inmarket-count" style="margin-left:6px;background:#d1fae5;color:#047857;padding:1px 7px;border-radius:2px;font-size:11px">46</span></div>
     <div class="tab" onclick="switchTab('tbh')">Planned — Not In Market <span id="tab-tbh-count" style="margin-left:6px;background:#f0eaf5;color:#86738c;padding:1px 7px;border-radius:2px;font-size:11px">44</span></div>
-    <div class="tab" onclick="switchTab('overview')">Team Overview</div>
+    <div class="tab" onclick="switchTab('overview')">Division Overview</div>
+    <div class="tab" onclick="switchTab('deptoverview')">Department Overview</div>
   </div>
 
   <div id="panel-ans" class="tab-panel active">
@@ -427,13 +428,13 @@ tbody td:first-child{font-weight:500;color:#2a0039}
   <div id="panel-overview" class="tab-panel">
     <div class="table-card">
       <div class="table-header">
-        <h3 id="overview-title">Headcount Summary by Division</h3>
+        <h3>Headcount Summary by Division</h3>
         <span class="table-count" id="overview-count-badge">All Divisions</span>
       </div>
       <table>
         <thead>
           <tr>
-            <th id="overview-col1">Division</th>
+            <th>Division</th>
             <th style="color:#2563eb">In Seat</th>
             <th style="color:#d97706">Accepted NS</th>
             <th style="color:#059669">In Market</th>
@@ -446,6 +447,30 @@ tbody td:first-child{font-weight:500;color:#2a0039}
       </table>
     </div>
   </div>
+
+  <div id="panel-deptoverview" class="tab-panel">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Headcount Summary by Department</h3>
+        <span class="table-count" id="deptoverview-count-badge">All Departments</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Division</th>
+            <th>Department</th>
+            <th style="color:#2563eb">In Seat</th>
+            <th style="color:#d97706">Accepted NS</th>
+            <th style="color:#059669">In Market</th>
+            <th style="color:#7c3aed">Planned TBH</th>
+            <th>Total</th>
+            <th>Fill Rate</th>
+          </tr>
+        </thead>
+        <tbody id="deptoverview-table-body"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -454,7 +479,7 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 // ═══════════════════════════════════════════
 
 const TODAY = new Date('2026-04-01');
-const DATA_REFRESHED = '2026-04-02T02:53:19Z';
+const DATA_REFRESHED = '2026-04-02T03:24:15Z';
 
 const teamStats = [
   { team:'Aviation', division:'Aviation', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
@@ -805,36 +830,42 @@ function renderTBHTable() {
   </tr>`).join('');
 }
 
+function overviewTotalRow(rows, extraCols) {
+  const tInSeat   = rows.reduce((s,r) => s + r.inSeat,   0);
+  const tAns      = rows.reduce((s,r) => s + r.ans,      0);
+  const tInMarket = rows.reduce((s,r) => s + r.inMarket, 0);
+  const tTbh      = rows.reduce((s,r) => s + r.tbh,      0);
+  const tTotal    = tInSeat + tAns + tInMarket + tTbh;
+  const tFill     = tTotal > 0 ? Math.round((tInSeat + tAns) / tTotal * 100) : 100;
+  return `<tr style="border-top:2px solid #e2d8e8;background:#faf8fb">
+    ${extraCols}
+    <td style="color:#2563eb;font-weight:700">${tInSeat}</td>
+    <td style="color:#d97706;font-weight:700">${tAns}</td>
+    <td style="color:#059669;font-weight:700">${tInMarket}</td>
+    <td style="color:#7c3aed;font-weight:700">${tTbh}</td>
+    <td style="font-weight:700;color:#2a0039">${tTotal}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="progress-bar" style="width:80px">
+          <div class="progress-fill" style="width:${tFill}%;background:${tFill>=80?'#2a0039':tFill>=60?'#d97706':'#ef4444'}"></div>
+        </div>
+        <span style="font-size:12px;color:#86738c">${tFill}%</span>
+      </div>
+    </td>
+  </tr>`;
+}
+
 function renderOverviewTable() {
-  let rows, nameKey, title, colLabel, badge;
+  // Always show division-level aggregates
+  const rows = getDivisionStats();
+  const filtered = currentDivisions.size === 0 ? rows : rows.filter(r => currentDivisions.has(r.division || ''));
+  document.getElementById('overview-count-badge').textContent = currentDivisions.size === 0 ? 'All Divisions' : `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
 
-  if (currentDivisions.size === 0) {
-    // Default: aggregate teamStats by division
-    rows     = getDivisionStats();
-    nameKey  = 'division';
-    title    = 'Headcount Summary by Division';
-    colLabel = 'Division';
-    badge    = 'All Divisions';
-  } else {
-    // Drill-down: show departments within selected divisions
-    rows     = teamStats.filter(r => currentDivisions.has(r.division || ''));
-    nameKey  = 'team';
-    title    = 'Headcount Summary by Department';
-    colLabel = 'Department';
-    badge    = `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
-  }
-
-  document.getElementById('overview-title').textContent    = title;
-  document.getElementById('overview-col1').textContent     = colLabel;
-  document.getElementById('overview-count-badge').textContent = badge;
-
-  const tbody = document.getElementById('overview-table-body');
-
-  const dataRows = rows.map(r => {
+  const dataRows = filtered.map(r => {
     const total    = r.inSeat + r.ans + r.inMarket + r.tbh;
     const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
     return `<tr>
-      <td style="font-weight:500">${r[nameKey]}</td>
+      <td style="font-weight:500">${r.division}</td>
       <td style="color:#2563eb;font-weight:600">${r.inSeat}</td>
       <td style="color:#d97706;font-weight:600">${r.ans || '—'}</td>
       <td style="color:#059669;font-weight:600">${r.inMarket || '—'}</td>
@@ -851,31 +882,44 @@ function renderOverviewTable() {
     </tr>`;
   }).join('');
 
-  // Total row
-  const tInSeat   = rows.reduce((s,r) => s + r.inSeat,    0);
-  const tAns      = rows.reduce((s,r) => s + r.ans,       0);
-  const tInMarket = rows.reduce((s,r) => s + r.inMarket,  0);
-  const tTbh      = rows.reduce((s,r) => s + r.tbh,       0);
-  const tTotal    = tInSeat + tAns + tInMarket + tTbh;
-  const tFill     = tTotal > 0 ? Math.round((tInSeat + tAns) / tTotal * 100) : 100;
-  const totalRow  = `<tr style="border-top:2px solid #e2d8e8;background:#faf8fb">
-    <td style="font-weight:700;color:#2a0039">Total</td>
-    <td style="color:#2563eb;font-weight:700">${tInSeat}</td>
-    <td style="color:#d97706;font-weight:700">${tAns}</td>
-    <td style="color:#059669;font-weight:700">${tInMarket}</td>
-    <td style="color:#7c3aed;font-weight:700">${tTbh}</td>
-    <td style="font-weight:700;color:#2a0039">${tTotal}</td>
-    <td>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="progress-bar" style="width:80px">
-          <div class="progress-fill" style="width:${tFill}%;background:${tFill>=80?'#2a0039':tFill>=60?'#d97706':'#ef4444'}"></div>
-        </div>
-        <span style="font-size:12px;color:#86738c">${tFill}%</span>
-      </div>
-    </td>
-  </tr>`;
+  document.getElementById('overview-table-body').innerHTML =
+    dataRows + overviewTotalRow(filtered, `<td style="font-weight:700;color:#2a0039">Total</td>`);
+}
 
-  tbody.innerHTML = dataRows + totalRow;
+function renderDeptOverviewTable() {
+  // Department rows sorted by Division then Department, with optional division filter
+  const rows = teamStats
+    .filter(r => currentDivisions.size === 0 || currentDivisions.has(r.division || ''))
+    .slice()
+    .sort((a,b) => (a.division||'').localeCompare(b.division||'') || (a.team||'').localeCompare(b.team||''));
+
+  document.getElementById('deptoverview-count-badge').textContent =
+    currentDivisions.size === 0 ? 'All Departments' : `${currentDivisions.size} Division${currentDivisions.size>1?'s':''}`;
+
+  const dataRows = rows.map(r => {
+    const total    = r.inSeat + r.ans + r.inMarket + r.tbh;
+    const fillRate = total > 0 ? Math.round((r.inSeat + r.ans) / total * 100) : 100;
+    return `<tr>
+      <td style="color:#64748b;font-size:13px">${r.division || '—'}</td>
+      <td style="font-weight:500">${r.team}</td>
+      <td style="color:#2563eb;font-weight:600">${r.inSeat}</td>
+      <td style="color:#d97706;font-weight:600">${r.ans || '—'}</td>
+      <td style="color:#059669;font-weight:600">${r.inMarket || '—'}</td>
+      <td style="color:#7c3aed;font-weight:600">${r.tbh || '—'}</td>
+      <td style="font-weight:600">${total}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-bar" style="width:80px">
+            <div class="progress-fill" style="width:${fillRate}%;background:${fillRate>=80?'#2a0039':fillRate>=60?'#d97706':'#ef4444'}"></div>
+          </div>
+          <span style="font-size:12px;color:#86738c">${fillRate}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('deptoverview-table-body').innerHTML =
+    dataRows + overviewTotalRow(rows, `<td style="font-weight:700;color:#2a0039" colspan="2">Total</td>`);
 }
 
 // ═══════════════════════════════════════════
@@ -1075,6 +1119,7 @@ function renderAll() {
   renderInMarketTable();
   renderTBHTable();
   renderOverviewTable();
+  renderDeptOverviewTable();
   updateBarChart();
   updateDonutChart();
 }
@@ -1082,7 +1127,7 @@ function renderAll() {
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach((t,i) => {
-    const tabs = ['ans','inmarket','tbh','overview'];
+    const tabs = ['ans','inmarket','tbh','overview','deptoverview'];
     t.classList.toggle('active', tabs[i] === tab);
   });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
