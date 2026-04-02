@@ -364,7 +364,6 @@ tbody td:first-child{font-weight:500;color:#2a0039}
             <th>Division</th>
             <th>Team</th>
             <th>Start Date</th>
-            <th>Days Out</th>
             <th>Location</th>
             <th>Type</th>
             <th>Backfill For</th>
@@ -753,16 +752,14 @@ function renderANSTable() {
   const rows = ansEmployees.filter(itemMatches)
     .sort((a,b) => new Date(a.hireDate) - new Date(b.hireDate));
   const tbody = document.getElementById('ans-table-body');
-  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No results for this filter.</td></tr>`; return; }
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No results for this filter.</td></tr>`; return; }
   tbody.innerHTML = rows.map(e => {
-    const days = daysOut(e.hireDate);
     return `<tr>
       <td>${e.name}</td>
       <td style="color:#64748b">${e.title}</td>
       <td>${e.division}</td>
       <td><span class="badge badge-slate">${e.team}</span></td>
       <td>${formatDate(e.hireDate)}</td>
-      <td>${daysOutBadge(days)}</td>
       <td style="color:#64748b">${e.city}, ${e.country}</td>
       <td>${typeBadge(e.type)}</td>
       <td style="color:#94a3b8;font-style:italic">${e.backfillFor || '—'}</td>
