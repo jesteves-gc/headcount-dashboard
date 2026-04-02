@@ -137,15 +137,15 @@ for r in hc_rows:
     if dept:
         dept_hc[dept][status] += val
 
-# In-Market + TBH counts from TBH Planning
+# In-Market + TBH + ANS counts from TBH Planning (single source of truth)
 dept_im  = defaultdict(int)
 dept_tbh = defaultdict(int)
+dept_ans = defaultdict(int)   # ANS counts from TBH Planning (replaces TT_Stats_Headcount ANS)
 
 in_market_roles = []
 tbh_roles       = []
-
-# Build ANS employee lookup: pigment_name → TBH row
-ans_emp_lookup = {}
+ans_employees_raw = []        # built directly from TBH Planning ANS rows
+seen_ans_names  = set()
 
 for r in tbh_rows:
     dept      = (r.get("tbh_department_UOEVEH") or "").strip()
@@ -167,10 +167,29 @@ for r in tbh_rows:
     if dept and tbh_div and dept not in dept_div:
         dept_div[dept] = tbh_div
 
-    # ANS enrichment lookup
-    if emp_hc == "ANS" and emp_name:
-        ans_emp_lookup[emp_name] = r
+    # ── ANS: count from TBH Planning (source of truth) ───────────────────────
+    # Pigment counts ANS from TBH positions where emp_hc = "ANS", regardless of
+    # whether those employees have been entered into the HR system yet.
+    if emp_hc == "ANS" and emp_name and dept:
+        if emp_name not in seen_ans_names:
+            seen_ans_names.add(emp_name)
+            dept_ans[dept] += 1
+            city = (r.get("tbh_city_OH6H5T") or r.get("tbh_text_city_XLRCXO") or "").strip()
+            if city.lower() in ("bangalore", "bengaluru"):
+                city = "Bengaluru"
+            ans_employees_raw.append(dict(
+                name        = fmt_name(emp_name),
+                title       = (r.get("tbh_position_title_08ZQWH") or "").strip(),
+                division    = div or dept,
+                team        = dept,
+                hireDate    = (r.get("tbh_actual_hire_date_87ML4V") or r.get("tbh_hire_date_F35HTM") or "").strip(),
+                type        = (r.get("tbh_approval_status_20UO98") or "In plan").strip(),
+                city        = city,
+                country     = (r.get("tbh_country_QW1BMZ") or r.get("tbh_text_country_W6HD13") or "").strip(),
+                backfillFor = fmt_name(r.get("tbh_text_backfill_for_MW82VF") or ""),
+            ))
 
+    # ── Open positions: In Market & TBH ──────────────────────────────────────
     # Skip filled positions
     if pos_status == "Filled":
         continue
@@ -190,6 +209,12 @@ for r in tbh_rows:
     if emp_hc in ("In-Seat", "Terminated"):
         continue
     if hr_status == "Filled" or tbhg_status == "Filled":
+        continue
+
+    # For Roles In Market: skip positions where offer has already been accepted
+    # (Pigment's board excludes these — they're functionally ANS, not open roles)
+    recr_status = (r.get("tbh_recruitment_status_text_0XDP9R") or "").strip()
+    if hc_type == "Roles In Market" and recr_status == "Offer Accepted":
         continue
 
     # Normalize city (Bangalore / Bengaluru)
@@ -219,11 +244,12 @@ for r in tbh_rows:
         dept_tbh[dept] += 1
         tbh_roles.append(role)
 
-# Combine all departments
+# Combine all departments (include ANS-only depts that may not appear in HC block)
 all_depts = (
     set(dept_hc.keys()) |
     set(dept_im.keys()) |
-    set(dept_tbh.keys())
+    set(dept_tbh.keys()) |
+    set(dept_ans.keys())
 ) - {""}
 
 team_stats = []
@@ -234,52 +260,15 @@ for dept in sorted(all_depts):
         division = dept_div.get(dept, dept_seg.get(dept, "Other")),
         segment  = dept_seg.get(dept, "Functional"),
         inSeat   = int(s.get("In-Seat", 0)),
-        ans      = int(s.get("ANS", 0)),
+        ans      = dept_ans.get(dept, 0),   # from TBH Planning (source of truth)
         inMarket = dept_im.get(dept, 0),
         tbh      = dept_tbh.get(dept, 0),
     ))
 
-# ── Build ansEmployees from EE_Stats_ANS ──────────────────────────────────────
-ans_employees = []
-seen_ans = set()
-
-for r in ans_rows:
-    if r.get("_month_GDBAK8") != cur_mon:
-        continue
-    pig_name = (r.get("employee_S1XCS2") or "").strip()
-    if not pig_name or pig_name in seen_ans:
-        continue
-    seen_ans.add(pig_name)
-
-    display_name = fmt_name(pig_name)
-    dept   = (r.get("departments_ITJAES") or "").strip()
-    country= (r.get("country_1RI628") or "").strip()
-
-    # Enrich from TBH Planning lookup
-    tbh_r  = ans_emp_lookup.get(pig_name, {})
-    title  = (tbh_r.get("tbh_position_title_08ZQWH") or "").strip()
-    div    = (tbh_r.get("tbh_division_HMK6KN")        or "").strip()
-    city   = (tbh_r.get("tbh_city_OH6H5T") or tbh_r.get("tbh_text_city_XLRCXO") or "").strip()
-    if city.lower() in ("bangalore", "bengaluru"):
-        city = "Bengaluru"
-    hire_date   = (tbh_r.get("tbh_actual_hire_date_87ML4V") or tbh_r.get("tbh_hire_date_F35HTM") or "").strip()
-    hire_type   = (tbh_r.get("tbh_approval_status_20UO98") or "In plan").strip()
-    backfill_for= fmt_name(tbh_r.get("tbh_text_backfill_for_MW82VF") or "")
-
-    ans_employees.append(dict(
-        name       = display_name,
-        title      = title,
-        division   = div or dept,
-        team       = dept,
-        hireDate   = hire_date,
-        type       = hire_type,
-        city       = city,
-        country    = country,
-        backfillFor= backfill_for,
-    ))
-
-# Sort ANS by hire date
-ans_employees.sort(key=lambda x: x.get("hireDate") or "9999")
+# ── ansEmployees: already built from TBH Planning in the loop above ──────────
+# ans_employees_raw contains all unique ANS employees with full TBH enrichment.
+# Sort by hire date ascending.
+ans_employees = sorted(ans_employees_raw, key=lambda x: x.get("hireDate") or "9999")
 
 # ── Print summary ─────────────────────────────────────────────────────────────
 total_in_seat  = sum(t["inSeat"]   for t in team_stats)
