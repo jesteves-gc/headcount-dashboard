@@ -1364,16 +1364,44 @@ function renderDonutLegend(k) {
 
 function updateBarChart() {
   if (!barChart) return;
+
+  // Build filtered per-dept counts from individual records (respects all active filters)
+  const inSeatByDept = {};
+  inSeatEmployees.forEach(e => { if (itemMatches(e)) inSeatByDept[e.dept] = (inSeatByDept[e.dept]||0)+1; });
+  const ansByDept = {};
+  ansEmployees.forEach(e => { if (itemMatches(e)) ansByDept[e.team] = (ansByDept[e.team]||0)+1; });
+  const imByDept = {};
+  inMarketRoles.forEach(r => { if (itemMatches(r)) imByDept[r.dept] = (imByDept[r.dept]||0)+1; });
+  const tbhByDept = {};
+  tbhRoles.forEach(r => { if (itemMatches(r)) tbhByDept[r.dept] = (tbhByDept[r.dept]||0)+1; });
+
   let rows, labelKey, title, sub;
   if (currentDivisions.size === 0) {
-    // Default: division-level aggregation
-    rows     = getDivisionStats();
+    // Default: division-level aggregation from filtered dept counts
+    const divMap = {};
+    teamStats.forEach(t => {
+      const div = t.division || 'Other';
+      if (!divMap[div]) divMap[div] = { division: div, inSeat:0, ans:0, inMarket:0, tbh:0 };
+      divMap[div].inSeat    += inSeatByDept[t.team] || 0;
+      divMap[div].ans       += ansByDept[t.team]    || 0;
+      divMap[div].inMarket  += imByDept[t.team]     || 0;
+      divMap[div].tbh       += tbhByDept[t.team]    || 0;
+    });
+    rows     = Object.values(divMap).sort((a,b) => a.division.localeCompare(b.division));
     labelKey = 'division';
     title    = 'Headcount by Division';
     sub      = 'Breakdown of all headcount statuses by division · select a division to drill into departments';
   } else {
-    // Drill-down: department breakdown within selected divisions
-    rows     = teamStats.filter(t => currentDivisions.has(t.division || ''));
+    // Drill-down: department breakdown within selected divisions, filtered
+    rows = teamStats
+      .filter(t => currentDivisions.has(t.division || ''))
+      .map(t => ({
+        team:     t.team,
+        inSeat:   inSeatByDept[t.team] || 0,
+        ans:      ansByDept[t.team]    || 0,
+        inMarket: imByDept[t.team]     || 0,
+        tbh:      tbhByDept[t.team]    || 0,
+      }));
     labelKey = 'team';
     title    = `Headcount by Department`;
     sub      = `Showing departments within: ${[...currentDivisions].join(', ')}`;
