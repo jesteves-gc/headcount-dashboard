@@ -455,8 +455,8 @@ tbody td:first-child{font-weight:500;color:#2a0039}
 // DATA
 // ═══════════════════════════════════════════
 
-const TODAY = new Date('2026-04-02');
-const DATA_REFRESHED = '2026-04-02T23:10:37Z';
+const TODAY = new Date('2026-04-03');
+const DATA_REFRESHED = '2026-04-03T14:28:11Z';
 
 const teamStats = [
   { team:'Aviation', division:'Aviation', segment:'Functional', inSeat:6, ans:0, inMarket:0, tbh:0 },
@@ -470,9 +470,8 @@ const teamStats = [
   { team:'Creation', division:'Creation', segment:'GC Capital', inSeat:6, ans:1, inMarket:3, tbh:0 },
   { team:'Customer Value', division:'Customer Value', segment:'GC Capital', inSeat:13, ans:0, inMarket:0, tbh:0 },
   { team:'Defense, Energy & Industrials', division:'Venture', segment:'GC Capital', inSeat:3, ans:2, inMarket:0, tbh:0 },
-  { team:'EnergyCo', division:'EnergyCo', segment:'EnergyCo', inSeat:4, ans:0, inMarket:0, tbh:0 },
   { team:'Enterprise', division:'Venture', segment:'GC Capital', inSeat:4, ans:0, inMarket:1, tbh:0 },
-  { team:'Equity Fund Finance', division:'Finance', segment:'Functional', inSeat:18, ans:0, inMarket:1, tbh:1 },
+  { team:'Equity Fund Finance', division:'Finance', segment:'Functional', inSeat:18, ans:0, inMarket:2, tbh:1 },
   { team:'Events & Experiential', division:'Marketing & Communication', segment:'Functional', inSeat:6, ans:1, inMarket:0, tbh:2 },
   { team:'Executive Support', division:'Administration', segment:'Functional', inSeat:36, ans:2, inMarket:1, tbh:0 },
   { team:'Founder Experience + Partnerships', division:'Company Operations', segment:'Functional', inSeat:7, ans:0, inMarket:0, tbh:3 },
@@ -530,6 +529,7 @@ const ansEmployees = [
 ];
 
 const inMarketRoles = [
+  { id:'275', title:'Fund Analyst', division:'Finance', dept:'Equity Fund Finance', status:'In Market', planStatus:'Blank', hireDate:'', hiringMgr:'Eckel, Andrew', city:'Cambridge', backfillFor:'' },
   { id:'97', title:'VP, Business Innovation', division:'Finance', dept:'Global Accounting Solutions', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Fielding, Paul', city:'San Francisco', backfillFor:'' },
   { id:'254', title:'Executive Project Coordinator', division:'Company Infrastructure', dept:'Company Infrastructure', status:'In Market', planStatus:'Backfill', hireDate:'2026-03-01', hiringMgr:'Jordan, Alison', city:'Berlin', backfillFor:'Dorothea McKie' },
   { id:'239', title:'Talent (Creation)', division:'Creation', dept:'Creation', status:'In Market', planStatus:'In plan', hireDate:'2026-03-01', hiringMgr:'Bhargava, Marc', city:'San Francisco', backfillFor:'Nmachi Jidenma' },
@@ -740,7 +740,6 @@ const inSeatEmployees = [
   { name:'Eunice Kim', dept:'Office Services', division:'Company Operations', city:'New York' },
   { name:'Evan Edelstein', dept:'CVF Finance', division:'Finance', city:'New York' },
   { name:'Evan Most', dept:'Wealth Management Operations', division:'GC Wealth', city:'New York' },
-  { name:'Farah Mandich', dept:'EnergyCo', division:'EnergyCo', city:'Minnesota' },
   { name:'Federica Roth', dept:'Fund-of-Funds', division:'Venture', city:'San Francisco' },
   { name:'Francisco Nodarse', dept:'Company Infrastructure', division:'Company Infrastructure', city:'San Francisco' },
   { name:'Gabriella Giglio', dept:'Human Resources', division:'Human Resources', city:'New York' },
@@ -766,7 +765,6 @@ const inSeatEmployees = [
   { name:'Jaejoon Kang', dept:'Fund-of-Funds', division:'Venture', city:'San Francisco' },
   { name:'Jakob Mokander', dept:'GC Institute', division:'GC Institute', city:'London' },
   { name:'James Gersack', dept:'Wealth Managers', division:'GC Wealth', city:'Jackson Hole, Wyoming' },
-  { name:'James Lambrou', dept:'EnergyCo', division:'EnergyCo', city:'Texas' },
   { name:'James Petersen', dept:'Executive Support', division:'Administration', city:'San Francisco' },
   { name:'James Wilcox', dept:'Wealth Managers', division:'GC Wealth', city:'Jackson Hole, Wyoming' },
   { name:'Jamie Sloate', dept:'Equity Fund Finance', division:'Finance', city:'Cambridge' },
@@ -828,11 +826,9 @@ const inSeatEmployees = [
   { name:'Lillian Enes', dept:'Investor Relations', division:'Investor Relations', city:'San Francisco' },
   { name:'Linda Jäck', dept:'GC Institute', division:'GC Institute', city:'Berlin' },
   { name:'Linda Mauzy', dept:'Wealth Managers', division:'GC Wealth', city:'Bellevue, Washington' },
-  { name:'Lindsey Waller', dept:'EnergyCo', division:'EnergyCo', city:'San Francisco' },
   { name:'Linn Raphael', dept:'Executive Support', division:'Administration', city:'London' },
   { name:'Lipsa Panda', dept:'Percepta', division:'Percepta', city:'New York' },
   { name:'Lisa Read', dept:'Executive Support', division:'Administration', city:'San Francisco' },
-  { name:'Lucena Daro', dept:'EnergyCo', division:'EnergyCo', city:'New York' },
   { name:'Lyman Bullard', dept:'Investor Relations', division:'Investor Relations', city:'Cambridge' },
   { name:'Madeline Andrews', dept:'Investor Relations', division:'Investor Relations', city:'San Francisco' },
   { name:'Madhukar Namburi', dept:'Creation', division:'Creation', city:'San Francisco' },
